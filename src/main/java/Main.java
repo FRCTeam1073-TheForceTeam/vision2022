@@ -15,6 +15,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.MjpegServer;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.cscore.VideoSource;
@@ -279,14 +280,14 @@ public final class Main {
   /**
    * Example pipeline.
    */
-  public static class MyPipeline implements VisionPipeline {
+  /*public static class MyPipeline implements VisionPipeline {
     public int val;
 
     @Override
     public void process(Mat mat) {
       val += 1;
     }
-  }
+  }*/
 
   /**
    * Main.
@@ -324,18 +325,22 @@ public final class Main {
 
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
-      VisionThread visionThread = new VisionThread(cameras.get(0),
-              new MyPipeline(), pipeline -> {
+      VisionThread hubTrackerThread = new VisionThread(cameras.get(0),
+              new HubTracker(ntinst), pipeline -> {
         // do something with pipeline results
       });
-      /* something like this for GRIP:
-      VisionThread visionThread = new VisionThread(cameras.get(0),
-              new GripPipeline(), pipeline -> {
-        ...
-      });
-       */
-      visionThread.start();
+     
+      hubTrackerThread.start();
     }
+    CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo", 320, 240);
+
+    if (cameras.size() >= 2) {
+      VisionThread cargoTrackerThread = new VisionThread(cameras.get(1),
+              new CargoTracker(ntinst, cargoStream), pipeline -> {
+        // do something with pipeline results
+      });
+     
+      cargoTrackerThread.start();
 
     // loop forever
     for (;;) {
