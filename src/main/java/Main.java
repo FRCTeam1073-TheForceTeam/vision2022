@@ -341,7 +341,7 @@ public final class Main {
       });
      
       cargoTrackerThread.start();
-
+    }
     // loop forever
     for (;;) {
       try {
