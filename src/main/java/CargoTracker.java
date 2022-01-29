@@ -87,7 +87,23 @@ public class CargoTracker implements VisionPipeline {
       List<MatOfPoint> contours = new ArrayList<>();
       Mat hierarchy = new Mat();
       Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-      Imgproc.drawContours(outputImage, contours, -1, new Scalar(0, 255, 0));
+
+      // Walk the list of contours that we found and draw the ones that meet certain criteria:
+      for (int cidx=0; cidx < contours.size(); cidx++) {
+        // Grab the bounding rectangle for contour:
+        Rect bounds = Imgproc.boundingRect(contours.get(cidx));
+        double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
+        Imgproc.rectangle(outputImage, bounds.br(), bounds.tl(), new Scalar(255,0,0));
+
+        // Only draw contours that have nearly square bounding boxes, and some minimal area... like round things.
+        if (bounds.area() > 32 && aspecterr < 0.3) {
+          // Now we know it has non-trivial size and is closer to square/round:
+
+          Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
+        }
+      }
+
+
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
 

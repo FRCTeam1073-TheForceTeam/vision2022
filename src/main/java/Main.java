@@ -333,7 +333,7 @@ public final class Main {
       hubTrackerThread.start();
     }*/
 
-    //if (cameras.size() >= 1) {
+    if (cameras.size() >= 1) {
       CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo", 320, 240);
       VisionThread cargoTrackerThread = new VisionThread(cameras.get(0),
               new CargoTracker(ntinst, cargoStream), pipeline -> {
@@ -342,7 +342,8 @@ public final class Main {
      
       cargoTrackerThread.start();
 
-    //}
+    }
+
 
     // loop forever
     for (;;) {
