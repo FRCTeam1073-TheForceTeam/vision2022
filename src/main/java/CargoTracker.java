@@ -2,11 +2,16 @@ import edu.wpi.first.vision.VisionPipeline;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.MatOfPoint;
 import org.opencv.features2d.SimpleBlobDetector;
 import org.opencv.imgproc.*;
 import edu.wpi.cscore.CvSource;
@@ -71,6 +76,10 @@ public class CargoTracker implements VisionPipeline {
       Core.inRange(hsvImage, new Scalar(cargoHMin.getDouble(30), cargoSMin.getDouble(50), cargoVMin.getDouble(20)), new Scalar(cargoHMax.getDouble(50), cargoSMax.getDouble(250), cargoVMax.getDouble(240)), maskImage);
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
+      List<MatOfPoint> contours = new ArrayList<>();
+      Mat hierarchy = new Mat();
+      Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+      Imgproc.drawContours(outputImage, contours, -1, new Scalar(0, 255, 0));
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
       output.putFrame(outputImage);
