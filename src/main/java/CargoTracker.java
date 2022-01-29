@@ -41,10 +41,10 @@ public class CargoTracker implements VisionPipeline {
     public void process(Mat inputImage) {
       frameCounter += 1;
      
-      Mat labImage = new Mat();
+      Mat hsvImage = new Mat();
       Mat maskImage = new Mat();
-      Imgproc.cvtColor(inputImage, labImage, Imgproc.COLOR_BGR2Lab);
-      Core.inRange(labImage, new Scalar(20, 50, 50), new Scalar(240, 100, 100), maskImage);
+      Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
+      Core.inRange(hsvImage, new Scalar(30, 50, 30), new Scalar(50, 230, 240), maskImage);
       Mat outputImage = new Mat();
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
