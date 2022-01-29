@@ -44,17 +44,17 @@ public class CargoTracker implements VisionPipeline {
         cargoArea = cargoTable.getEntry("Cargo Area");
         cargoArea.setDouble(0);
         cargoHMin = cargoTable.getEntry("H Min");
-        cargoHMin.setDouble(30);
+        cargoHMin.setDouble(25);
         cargoHMax = cargoTable.getEntry("H Max");
-        cargoHMax.setDouble(50);
+        cargoHMax.setDouble(40);
         cargoSMin = cargoTable.getEntry("S Min");
-        cargoSMin.setDouble(50);
+        cargoSMin.setDouble(90);
         cargoSMax = cargoTable.getEntry("S Max");
-        cargoSMax.setDouble(250);
+        cargoSMax.setDouble(255);
         cargoVMin = cargoTable.getEntry("V Min");
-        cargoVMin.setDouble(20);
+        cargoVMin.setDouble(60);
         cargoVMax = cargoTable.getEntry("V Max");
-        cargoVMax.setDouble(240);
+        cargoVMax.setDouble(252);
 
 
         output = output_;
