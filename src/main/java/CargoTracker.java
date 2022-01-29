@@ -22,6 +22,10 @@ public class CargoTracker implements VisionPipeline {
     private NetworkTableEntry cargoY;
     private NetworkTableEntry cargoArea;
     private CvSource output;
+    private Mat hsvImage;
+    private Mat maskImage;
+    private Mat outputImage;
+
     //private SimpleBlobDetectorParams blobParam
 
     public CargoTracker(NetworkTableInstance ntinst, CvSource output_){
@@ -35,17 +39,17 @@ public class CargoTracker implements VisionPipeline {
         cargoArea.setDouble(0);
 
         output = output_;
+        hsvImage = new Mat();
+        maskImage = new Mat();
+        outputImage = new Mat();
     }
 
     @Override
     public void process(Mat inputImage) {
       frameCounter += 1;
      
-      Mat hsvImage = new Mat();
-      Mat maskImage = new Mat();
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
       Core.inRange(hsvImage, new Scalar(30, 50, 30), new Scalar(50, 230, 240), maskImage);
-      Mat outputImage = new Mat();
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
