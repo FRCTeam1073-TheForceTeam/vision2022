@@ -49,7 +49,8 @@ public class CargoTracker implements VisionPipeline {
       frameCounter += 1;
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(30, 50, 30), new Scalar(50, 230, 240), maskImage);
+      Core.inRange(hsvImage, new Scalar(30, 50, 20), new Scalar(50, 250, 240), maskImage);
+      outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
