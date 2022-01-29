@@ -21,6 +21,12 @@ public class CargoTracker implements VisionPipeline {
     private NetworkTableEntry cargoX;
     private NetworkTableEntry cargoY;
     private NetworkTableEntry cargoArea;
+    private NetworkTableEntry cargoHMin;
+    private NetworkTableEntry cargoHMax;
+    private NetworkTableEntry cargoSMin;
+    private NetworkTableEntry cargoSMax;
+    private NetworkTableEntry cargoVMin;
+    private NetworkTableEntry cargoVMax;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
@@ -37,6 +43,19 @@ public class CargoTracker implements VisionPipeline {
         cargoY.setDouble(0);
         cargoArea = cargoTable.getEntry("Cargo Area");
         cargoArea.setDouble(0);
+        cargoHMin = cargoTable.getEntry("H Min");
+        cargoHMin.setDouble(30);
+        cargoHMax = cargoTable.getEntry("H Max");
+        cargoHMax.setDouble(50);
+        cargoSMin = cargoTable.getEntry("S Min");
+        cargoSMin.setDouble(50);
+        cargoSMax = cargoTable.getEntry("S Max");
+        cargoSMax.setDouble(250);
+        cargoVMin = cargoTable.getEntry("V Min");
+        cargoVMin.setDouble(20);
+        cargoVMax = cargoTable.getEntry("V Max");
+        cargoVMax.setDouble(240);
+
 
         output = output_;
         hsvImage = new Mat();
@@ -49,7 +68,7 @@ public class CargoTracker implements VisionPipeline {
       frameCounter += 1;
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(30, 50, 20), new Scalar(50, 250, 240), maskImage);
+      Core.inRange(hsvImage, new Scalar(cargoHMin.getDouble(30), cargoSMin.getDouble(50), cargoVMin.getDouble(20)), new Scalar(cargoHMax.getDouble(50), cargoSMax.getDouble(250), cargoVMax.getDouble(240)), maskImage);
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
