@@ -35,10 +35,13 @@ public class CargoTracker implements VisionPipeline {
     }
 
     @Override
-    public void process(Mat mat) {
+    public void process(Mat inputImage) {
       frameCounter += 1;
-      Imgproc.line(mat, new Point(0, mat.rows()/2), new Point(mat.cols()-1, mat.rows()/2), new Scalar(0, 0, 255));
-      output.putFrame(mat);
+     
+      Mat outputImage = new Mat();
+      Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
+      Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
+      output.putFrame(outputImage);
     }
   }
 
