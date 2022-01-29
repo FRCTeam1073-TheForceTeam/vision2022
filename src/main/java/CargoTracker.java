@@ -3,7 +3,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.*;
 import edu.wpi.cscore.CvSource;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
@@ -11,7 +13,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardContainer;
     
 public class CargoTracker implements VisionPipeline {
-    public int val;
+    public int frameCounter;
     private NetworkTableInstance nti;
     private NetworkTable cargoTable;
     private NetworkTableEntry cargoX;
@@ -34,7 +36,8 @@ public class CargoTracker implements VisionPipeline {
 
     @Override
     public void process(Mat mat) {
-      val += 1;
+      frameCounter += 1;
+      Imgproc.line(mat, new Point(0, mat.rows()/2), new Point(mat.cols()-1, mat.rows()/2), new Scalar(0, 0, 255));
       output.putFrame(mat);
     }
   }
