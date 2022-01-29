@@ -11,6 +11,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.core.MatOfPoint;
 import org.opencv.features2d.SimpleBlobDetector;
 import org.opencv.imgproc.*;
@@ -36,6 +37,7 @@ public class CargoTracker implements VisionPipeline {
     private Mat hsvImage;
     private Mat maskImage;
     private Mat outputImage;
+    private Mat erosionKernel;
 
     //private SimpleBlobDetectorParams blobParam
 
@@ -66,6 +68,7 @@ public class CargoTracker implements VisionPipeline {
         hsvImage = new Mat();
         maskImage = new Mat();
         outputImage = new Mat();
+        erosionKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
     }
 
     @Override
@@ -76,12 +79,20 @@ public class CargoTracker implements VisionPipeline {
       Core.inRange(hsvImage, new Scalar(cargoHMin.getDouble(30), cargoSMin.getDouble(50), cargoVMin.getDouble(20)), new Scalar(cargoHMax.getDouble(50), cargoSMax.getDouble(250), cargoVMax.getDouble(240)), maskImage);
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
+
+      // Erode the mask image to eliminate the little "noise" pixels
+      Imgproc.erode(maskImage, maskImage, erosionKernel);
+
+      // Set up to find contours in the mask image.
       List<MatOfPoint> contours = new ArrayList<>();
       Mat hierarchy = new Mat();
-      Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+      Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
       Imgproc.drawContours(outputImage, contours, -1, new Scalar(0, 255, 0));
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
+
+      System.out.println(contours.size());
+
       output.putFrame(outputImage);
     }
   }
