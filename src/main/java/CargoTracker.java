@@ -51,9 +51,9 @@ public class CargoTracker implements VisionPipeline {
         cargoArea = cargoTable.getEntry("Cargo Area");
         cargoArea.setDouble(0);
         cargoHMin = cargoTable.getEntry("H Min");
-        cargoHMin.setDouble(25);
+        cargoHMin.setDouble(0);
         cargoHMax = cargoTable.getEntry("H Max");
-        cargoHMax.setDouble(40);
+        cargoHMax.setDouble(30);
         cargoSMin = cargoTable.getEntry("S Min");
         cargoSMin.setDouble(90);
         cargoSMax = cargoTable.getEntry("S Max");
@@ -76,7 +76,7 @@ public class CargoTracker implements VisionPipeline {
       frameCounter += 1;
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(cargoHMin.getDouble(30), cargoSMin.getDouble(50), cargoVMin.getDouble(20)), new Scalar(cargoHMax.getDouble(50), cargoSMax.getDouble(250), cargoVMax.getDouble(240)), maskImage);
+      Core.inRange(hsvImage, new Scalar(cargoHMin.getDouble(0), cargoSMin.getDouble(50), cargoVMin.getDouble(20)), new Scalar(cargoHMax.getDouble(30), cargoSMax.getDouble(250), cargoVMax.getDouble(240)), maskImage);
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
       /*
@@ -92,6 +92,11 @@ public class CargoTracker implements VisionPipeline {
       Mat hierarchy = new Mat();
       Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
+      double bestArea = 0.0;
+      double bestX = 0.0;
+      double bestY = 0.0;
+
+
       // Walk the list of contours that we found and draw the ones that meet certain criteria:
       for (int cidx=0; cidx < contours.size(); cidx++) {
         // Grab the bounding rectangle for contour:
@@ -104,21 +109,27 @@ public class CargoTracker implements VisionPipeline {
           // Now we know it has non-trivial size and is closer to square/round:
 
           Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
-          cargoX.setDouble(bounds.x);
-          cargoY.setDouble(bounds.y);
-          cargoArea.setDouble(bounds.area());
+         if (bounds.area() > bestArea){
+           bestArea = bounds.area();
+           bestX = bounds.x;
+           bestY = bounds.y;
+         }
+        }
+      }
+      //sends our best answer if found
+      if (bestArea > 0.0){
+          cargoX.setDouble(bestX);
+          cargoY.setDouble(bestY);
+          cargoArea.setDouble(bestArea);
+      }
+      else {
+        cargoArea.setDouble(0.0);
 
-        }
-        else {
-          cargoArea.setDouble(0);
-        }
       }
 
 
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
-
-      System.out.println(contours.size());
 
       output.putFrame(outputImage);
     }
