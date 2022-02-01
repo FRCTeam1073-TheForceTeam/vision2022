@@ -79,6 +79,10 @@ public class CargoTracker implements VisionPipeline {
       Core.inRange(hsvImage, new Scalar(cargoHMin.getDouble(30), cargoSMin.getDouble(50), cargoVMin.getDouble(20)), new Scalar(cargoHMax.getDouble(50), cargoSMax.getDouble(250), cargoVMax.getDouble(240)), maskImage);
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
+      /*
+      red cargo: H max(30), H min(0), S max(255), S min(90), V max(252), V min(60)
+      blue cargo: H max(165), H min(130), S max(255), S min(90), V max(252), V min(60)
+      */
 
       // Erode the mask image to eliminate the little "noise" pixels
       Imgproc.erode(maskImage, maskImage, erosionKernel);
@@ -100,6 +104,13 @@ public class CargoTracker implements VisionPipeline {
           // Now we know it has non-trivial size and is closer to square/round:
 
           Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
+          cargoX.setDouble(bounds.x);
+          cargoY.setDouble(bounds.y);
+          cargoArea.setDouble(bounds.area());
+
+        }
+        else {
+          cargoArea.setDouble(0);
         }
       }
 
