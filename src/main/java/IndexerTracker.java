@@ -19,20 +19,20 @@ import edu.wpi.cscore.CvSource;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardContainer;
-    
-public class CargoTracker implements VisionPipeline {
+
+public class IndexerTracker implements VisionPipeline {
     public int frameCounter;
     private NetworkTableInstance nti;
-    private NetworkTable cargoTable;
-    private NetworkTableEntry cargoX;
-    private NetworkTableEntry cargoY;
-    private NetworkTableEntry cargoArea;
-    private NetworkTableEntry cargoHMin;
-    private NetworkTableEntry cargoHMax;
-    private NetworkTableEntry cargoSMin;
-    private NetworkTableEntry cargoSMax;
-    private NetworkTableEntry cargoVMin;
-    private NetworkTableEntry cargoVMax;
+    private NetworkTable indexerTable;
+    private NetworkTableEntry indexerX;
+    private NetworkTableEntry indexerY;
+    private NetworkTableEntry indexerArea;
+    private NetworkTableEntry indexerHMin;
+    private NetworkTableEntry indexerHMax;
+    private NetworkTableEntry indexerSMin;
+    private NetworkTableEntry indexerSMax;
+    private NetworkTableEntry indexerVMin;
+    private NetworkTableEntry indexerVMax;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
@@ -41,27 +41,27 @@ public class CargoTracker implements VisionPipeline {
 
     //private SimpleBlobDetectorParams blobParam
 
-    public CargoTracker(NetworkTableInstance ntinst, CvSource output_){
+    public IndexerTracker(NetworkTableInstance ntinst, CvSource output_){
         nti = ntinst;
-        cargoTable = nti.getTable("CARGO");
-        cargoX = cargoTable.getEntry("Cargo X");
-        cargoX.setDouble(0);
-        cargoY = cargoTable.getEntry("Cargo Y");
-        cargoY.setDouble(0);
-        cargoArea = cargoTable.getEntry("Cargo Area");
-        cargoArea.setDouble(0);
-        cargoHMin = cargoTable.getEntry("H Min");
-        cargoHMin.setDouble(0);
-        cargoHMax = cargoTable.getEntry("H Max");
-        cargoHMax.setDouble(30);
-        cargoSMin = cargoTable.getEntry("S Min");
-        cargoSMin.setDouble(90);
-        cargoSMax = cargoTable.getEntry("S Max");
-        cargoSMax.setDouble(255);
-        cargoVMin = cargoTable.getEntry("V Min");
-        cargoVMin.setDouble(60);
-        cargoVMax = cargoTable.getEntry("V Max");
-        cargoVMax.setDouble(252);
+        indexerTable = nti.getTable("INDEXER");
+        indexerX = indexerTable.getEntry("Indexer X");
+        indexerX.setDouble(0);
+        indexerY = indexerTable.getEntry("Indexer Y");
+        indexerY.setDouble(0);
+        indexerArea = indexerTable.getEntry("Indexer Area");
+        indexerArea.setDouble(0);
+        indexerHMin = indexerTable.getEntry("H Min");
+        indexerHMin.setDouble(0);
+        indexerHMax = indexerTable.getEntry("H Max");
+        indexerHMax.setDouble(30);
+        indexerSMin = indexerTable.getEntry("S Min");
+        indexerSMin.setDouble(90);
+        indexerSMax = indexerTable.getEntry("S Max");
+        indexerSMax.setDouble(255);
+        indexerVMin = indexerTable.getEntry("V Min");
+        indexerVMin.setDouble(60);
+        indexerVMax = indexerTable.getEntry("V Max");
+        indexerVMax.setDouble(252);
 
 
         output = output_;
@@ -71,13 +71,12 @@ public class CargoTracker implements VisionPipeline {
         erosionKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
     }
 
-    
     @Override
     public void process(Mat inputImage) {
       frameCounter += 1;
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(cargoHMin.getDouble(0), cargoSMin.getDouble(50), cargoVMin.getDouble(20)), new Scalar(cargoHMax.getDouble(30), cargoSMax.getDouble(250), cargoVMax.getDouble(240)), maskImage);
+      Core.inRange(hsvImage, new Scalar(indexerHMin.getDouble(0), indexerSMin.getDouble(50), indexerVMin.getDouble(20)), new Scalar(indexerHMax.getDouble(30), indexerSMax.getDouble(250), indexerVMax.getDouble(240)), maskImage);
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
       /*
@@ -119,12 +118,12 @@ public class CargoTracker implements VisionPipeline {
       }
       //sends our best answer if found
       if (bestArea > 0.0){
-          cargoX.setDouble(bestX);
-          cargoY.setDouble(bestY);
-          cargoArea.setDouble(bestArea);
+          indexerX.setDouble(bestX);
+          indexerY.setDouble(bestY);
+          indexerArea.setDouble(bestArea);
       }
       else {
-        cargoArea.setDouble(0.0);
+        indexerArea.setDouble(0.0);
 
       }
 
@@ -134,5 +133,5 @@ public class CargoTracker implements VisionPipeline {
 
       output.putFrame(outputImage);
     }
-  }
 
+}

@@ -39,9 +39,10 @@ public class HubTracker implements VisionPipeline {
     private Mat outputImage;
     private Mat erosionKernel;
 
+    //private SimpleBlobDetectorParams blobParam
 
-       public HubTracker(NetworkTableInstance ntinst, CvSource output_){
-           nti = ntinst;
+      public HubTracker(NetworkTableInstance ntinst, CvSource output_){
+        nti = ntinst;
         hubTable = nti.getTable("HUB");
         hubX = hubTable.getEntry("Hub X");
         hubX.setDouble(0);
@@ -62,12 +63,13 @@ public class HubTracker implements VisionPipeline {
         hubVMax = hubTable.getEntry("V Max");
         hubVMax.setDouble(252);
 
+
         output = output_;
         hsvImage = new Mat();
         maskImage = new Mat();
         outputImage = new Mat();
         erosionKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
-        }
+     }
 
 
     @Override
