@@ -16,9 +16,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.features2d.SimpleBlobDetector;
 import org.opencv.imgproc.*;
 import edu.wpi.cscore.CvSource;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardContainer;
 
 public class IndexerTracker implements VisionPipeline {
     public int frameCounter;

@@ -16,9 +16,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.features2d.SimpleBlobDetector;
 import org.opencv.imgproc.*;
 import edu.wpi.cscore.CvSource;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardContainer;
     
 public class CargoTracker implements VisionPipeline {
     public int frameCounter;
@@ -26,18 +23,36 @@ public class CargoTracker implements VisionPipeline {
     private NetworkTable cargoTable;
     private NetworkTableEntry cargoX;
     private NetworkTableEntry cargoY;
+    private NetworkTableEntry isRed;
     private NetworkTableEntry cargoArea;
-    private NetworkTableEntry cargoHMin;
-    private NetworkTableEntry cargoHMax;
-    private NetworkTableEntry cargoSMin;
-    private NetworkTableEntry cargoSMax;
-    private NetworkTableEntry cargoVMin;
-    private NetworkTableEntry cargoVMax;
+
+    private NetworkTableEntry redHMin;
+    private NetworkTableEntry redHMax;
+    private NetworkTableEntry redSMin;
+    private NetworkTableEntry redSMax;
+    private NetworkTableEntry redVMin;
+    private NetworkTableEntry redVMax;
+    private NetworkTableEntry blueHMin;
+    private NetworkTableEntry blueHMax;
+    private NetworkTableEntry blueSMin;
+    private NetworkTableEntry blueSMax;
+    private NetworkTableEntry blueVMin;
+    private NetworkTableEntry blueVMax;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
     private Mat outputImage;
     private Mat erosionKernel;
+
+    public class CargoData{
+      public double x;
+      public double y;
+      public double width;
+      public double height;
+      public double area;
+      public boolean isRed;
+
+    }
 
     //private SimpleBlobDetectorParams blobParam
 
@@ -50,18 +65,33 @@ public class CargoTracker implements VisionPipeline {
         cargoY.setDouble(0);
         cargoArea = cargoTable.getEntry("Cargo Area");
         cargoArea.setDouble(0);
-        cargoHMin = cargoTable.getEntry("H Min");
-        cargoHMin.setDouble(0);
-        cargoHMax = cargoTable.getEntry("H Max");
-        cargoHMax.setDouble(30);
-        cargoSMin = cargoTable.getEntry("S Min");
-        cargoSMin.setDouble(90);
-        cargoSMax = cargoTable.getEntry("S Max");
-        cargoSMax.setDouble(255);
-        cargoVMin = cargoTable.getEntry("V Min");
-        cargoVMin.setDouble(60);
-        cargoVMax = cargoTable.getEntry("V Max");
-        cargoVMax.setDouble(252);
+        isRed = cargoTable.getEntry("Is Cargo Red");
+        isRed.setBoolean(true);
+        redHMin = cargoTable.getEntry("Red H Min");
+        redHMin.setDouble(0);
+        redHMax = cargoTable.getEntry("Red H Max");
+        redHMax.setDouble(30);
+        redSMin = cargoTable.getEntry("Red S Min");
+        redSMin.setDouble(90);
+        redSMax = cargoTable.getEntry("Red S Max");
+        redSMax.setDouble(255);
+        redVMin = cargoTable.getEntry("Red V Min");
+        redVMin.setDouble(60);
+        redVMax = cargoTable.getEntry("Red V Max");
+        redVMax.setDouble(252);
+        blueHMin = cargoTable.getEntry("Blue H Min");
+        blueHMin.setDouble(0);
+        blueHMax = cargoTable.getEntry("Blue H max");
+        blueHMax.setDouble(30);
+        blueSMin = cargoTable.getEntry("Blue S Min");
+        blueSMin.setDouble(90);
+        blueSMax = cargoTable.getEntry("Blue S Max");
+        blueSMax.setDouble(255);
+        blueVMin = cargoTable.getEntry("Blue V Min");
+        blueVMin.setDouble(60);
+        blueVMax = cargoTable.getEntry("Blue V Max");
+        blueVMax.setDouble(252);
+        
 
 
         output = output_;
@@ -77,7 +107,40 @@ public class CargoTracker implements VisionPipeline {
       frameCounter += 1;
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(cargoHMin.getDouble(0), cargoSMin.getDouble(50), cargoVMin.getDouble(20)), new Scalar(cargoHMax.getDouble(30), cargoSMax.getDouble(250), cargoVMax.getDouble(240)), maskImage);
+
+      Core.inRange(hsvImage, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), new Scalar(redHMax.getDouble(30), redSMax.getDouble(250), redVMax.getDouble(240)), maskImage);
+      CargoData redCargo = new CargoData();
+      findCargo(inputImage, maskImage, redCargo);
+
+      Core.inRange(hsvImage, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), maskImage);
+      CargoData blueCargo = new CargoData();
+      findCargo(inputImage, maskImage, blueCargo);
+
+      //sends our best answer if found
+      if (redCargo.area > 0.0){
+          cargoX.setDouble(redCargo.x);
+          cargoY.setDouble(redCargo.y);
+          cargoArea.setDouble(redCargo.area);
+          isRed.setBoolean(true);
+      }
+      
+      if (blueCargo.area > 0.0){
+          cargoX.setDouble(blueCargo.x);
+          cargoY.setDouble(blueCargo.y);
+          cargoArea.setDouble(blueCargo.area);
+          isRed.setBoolean(false);
+      }
+      else {
+        cargoArea.setDouble(0.0);
+      }
+
+     // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
+      //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
+
+      output.putFrame(inputImage);
+    }
+
+    void findCargo(Mat inputImage,Mat maskImage, CargoData cargoData){
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
       /*
@@ -96,6 +159,8 @@ public class CargoTracker implements VisionPipeline {
       double bestArea = 0.0;
       double bestX = 0.0;
       double bestY = 0.0;
+      double bestWidth = 0.0;
+      double bestHeight = 0.0;
 
 
       // Walk the list of contours that we found and draw the ones that meet certain criteria:
@@ -114,25 +179,17 @@ public class CargoTracker implements VisionPipeline {
            bestArea = bounds.area();
            bestX = bounds.x;
            bestY = bounds.y;
+           bestWidth = bounds.width;
+           bestHeight = bounds.height;
          }
         }
       }
       //sends our best answer if found
-      if (bestArea > 0.0){
-          cargoX.setDouble(bestX);
-          cargoY.setDouble(bestY);
-          cargoArea.setDouble(bestArea);
-      }
-      else {
-        cargoArea.setDouble(0.0);
-
-      }
-
-
-     // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
-      //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
-
-      output.putFrame(outputImage);
+      cargoData.x = bestX;
+      cargoData.y = bestY;
+      cargoData.area = bestArea;
+      cargoData.width = bestWidth;
+      cargoData.height = bestHeight;
     }
   }
 
