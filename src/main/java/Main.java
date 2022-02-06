@@ -324,14 +324,24 @@ public final class Main {
     }
 
     // start image processing on camera 0 if present
+    // if (cameras.size() >= 1) {
+    //   CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo", 320, 240);
+    //   VisionThread cargoTrackerThread = new VisionThread(cameras.get(0),
+    //           new CargoTracker(ntinst, cargoStream), pipeline -> {
+    //     // do something with pipeline results
+    //   });
+     
+    //   cargoTrackerThread.start();
+
+    // }
     if (cameras.size() >= 1) {
-      CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo", 320, 240);
-      VisionThread cargoTrackerThread = new VisionThread(cameras.get(0),
-              new CargoTracker(ntinst, cargoStream), pipeline -> {
+      CvSource cargoStream = CameraServer.getInstance().putVideo("Hub", 320, 240);
+      VisionThread hubTrackerThread = new VisionThread(cameras.get(0),
+              new HubTracker(ntinst, cargoStream), pipeline -> {
         // do something with pipeline results
       });
      
-      cargoTrackerThread.start();
+      hubTrackerThread.start();
 
     }
      // start image processing on camera 1 if present

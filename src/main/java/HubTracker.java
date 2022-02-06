@@ -48,17 +48,17 @@ public class HubTracker implements VisionPipeline {
         hubArea = hubTable.getEntry("Hub Area");
         hubArea.setDouble(0);
         hubHMin = hubTable.getEntry("H Min");
-        hubHMin.setDouble(0);
+        hubHMin.setDouble(100);
         hubHMax = hubTable.getEntry("H Max");
-        hubHMax.setDouble(30);
+        hubHMax.setDouble(140);
         hubSMin = hubTable.getEntry("S Min");
-        hubSMin.setDouble(90);
+        hubSMin.setDouble(80);
         hubSMax = hubTable.getEntry("S Max");
         hubSMax.setDouble(255);
         hubVMin = hubTable.getEntry("V Min");
-        hubVMin.setDouble(60);
+        hubVMin.setDouble(100);
         hubVMax = hubTable.getEntry("V Max");
-        hubVMax.setDouble(252);
+        hubVMax.setDouble(250);
 
 
         output = output_;
@@ -74,12 +74,12 @@ public class HubTracker implements VisionPipeline {
       frameCounter += 1;
 
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(0), hubSMin.getDouble(50), hubVMin.getDouble(20)), new Scalar(hubHMax.getDouble(30), hubSMax.getDouble(250), hubVMax.getDouble(240)), maskImage);
+      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(100), hubSMin.getDouble(80), hubVMin.getDouble(100)), new Scalar(hubHMax.getDouble(140), hubSMax.getDouble(255), hubVMax.getDouble(250)), maskImage);
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
 
       // Erode the mask image to eliminate the little "noise" pixels
-      Imgproc.erode(maskImage, maskImage, erosionKernel);
+     // Imgproc.erode(maskImage, maskImage, erosionKernel);
 
       // Set up to find contours in the mask image.
       List<MatOfPoint> contours = new ArrayList<>();
@@ -99,7 +99,7 @@ public class HubTracker implements VisionPipeline {
         Imgproc.rectangle(outputImage, bounds.br(), bounds.tl(), new Scalar(255,0,0));
 
         // Only draw contours that have nearly square bounding boxes, and some minimal area... like round things.
-        if (bounds.area() > 32 && aspecterr < 0.3) {
+        if (bounds.area() > 8 && aspecterr < 0.5) {
           // Now we know it has non-trivial size and is closer to square/round:
 
           Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
