@@ -322,6 +322,9 @@ public final class Main {
     for (SwitchedCameraConfig config : switchedCameraConfigs) {
       startSwitchedCamera(config);
     }
+    
+    System.out.println("Cameras size");
+    System.out.println(cameras.size());
 
     // start image processing on camera 0 if present
     if (cameras.size() >= 1) {
