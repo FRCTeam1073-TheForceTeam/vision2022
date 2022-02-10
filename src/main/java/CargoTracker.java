@@ -24,7 +24,12 @@ public class CargoTracker implements VisionPipeline {
     private NetworkTableEntry cargoX;
     private NetworkTableEntry cargoY;
     private NetworkTableEntry isRed;
-    private NetworkTableEntry cargoArea;
+    private NetworkTableEntry redCargoArea;
+    private NetworkTableEntry redCargoX;
+    private NetworkTableEntry redCargoY;
+    private NetworkTableEntry blueCargoArea;
+    private NetworkTableEntry blueCargoX;
+    private NetworkTableEntry blueCargoY;
 
     private NetworkTableEntry redHMin;
     private NetworkTableEntry redHMax;
@@ -63,8 +68,18 @@ public class CargoTracker implements VisionPipeline {
         cargoX.setDouble(0);
         cargoY = cargoTable.getEntry("Cargo Y");
         cargoY.setDouble(0);
-        cargoArea = cargoTable.getEntry("Cargo Area");
-        cargoArea.setDouble(0);
+        redCargoArea = cargoTable.getEntry("Red Cargo Area");
+        redCargoArea.setDouble(0);
+        redCargoX = cargoTable.getEntry("Red Cargo X");
+        redCargoX.setDouble(0);
+        redCargoY = cargoTable.getEntry("Red Cargo Y");
+        redCargoY.setDouble(0);
+        blueCargoArea = cargoTable.getEntry("Blue Cargo Area");
+        blueCargoArea.setDouble(0);
+        blueCargoX = cargoTable.getEntry("Blue Cargo X");
+        blueCargoX.setDouble(0);
+        blueCargoY = cargoTable.getEntry("Blue Cargo Y");
+        blueCargoY.setDouble(0);
         isRed = cargoTable.getEntry("Is Cargo Red");
         isRed.setBoolean(true);
         redHMin = cargoTable.getEntry("Red H Min");
@@ -80,9 +95,9 @@ public class CargoTracker implements VisionPipeline {
         redVMax = cargoTable.getEntry("Red V Max");
         redVMax.setDouble(252);
         blueHMin = cargoTable.getEntry("Blue H Min");
-        blueHMin.setDouble(0);
+        blueHMin.setDouble(130);
         blueHMax = cargoTable.getEntry("Blue H max");
-        blueHMax.setDouble(30);
+        blueHMax.setDouble(165);
         blueSMin = cargoTable.getEntry("Blue S Min");
         blueSMin.setDouble(90);
         blueSMax = cargoTable.getEntry("Blue S Max");
@@ -108,30 +123,39 @@ public class CargoTracker implements VisionPipeline {
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
 
-      Core.inRange(hsvImage, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), new Scalar(redHMax.getDouble(30), redSMax.getDouble(250), redVMax.getDouble(240)), maskImage);
+     Core.inRange(hsvImage, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), 
+          new Scalar(redHMax.getDouble(30), redSMax.getDouble(250), redVMax.getDouble(240)), maskImage);
       CargoData redCargo = new CargoData();
       findCargo(inputImage, maskImage, redCargo);
 
-      Core.inRange(hsvImage, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), maskImage);
+      Core.inRange(hsvImage, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), 
+         new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), maskImage);
       CargoData blueCargo = new CargoData();
       findCargo(inputImage, maskImage, blueCargo);
 
       //sends our best answer if found
       if (redCargo.area > 0.0){
-          cargoX.setDouble(redCargo.x);
-          cargoY.setDouble(redCargo.y);
-          cargoArea.setDouble(redCargo.area);
+          redCargoX.setDouble(redCargo.x);
+          redCargoY.setDouble(redCargo.y);
+          redCargoArea.setDouble(redCargo.area);
           isRed.setBoolean(true);
+          Imgproc.rectangle(inputImage, new Point(redCargo.x - redCargo.width/2.0, redCargo.y - redCargo.height/2.0), 
+              new Point(redCargo.x + redCargo.width/2.0, redCargo.y + redCargo.height/2.0), new Scalar(0,0,255), 3);
+      }
+      else {
+        redCargoArea.setDouble(0.0);
       }
       
       if (blueCargo.area > 0.0){
-          cargoX.setDouble(blueCargo.x);
-          cargoY.setDouble(blueCargo.y);
-          cargoArea.setDouble(blueCargo.area);
+          blueCargoX.setDouble(blueCargo.x);
+          blueCargoY.setDouble(blueCargo.y);
+          blueCargoArea.setDouble(blueCargo.area);
           isRed.setBoolean(false);
+          Imgproc.rectangle(inputImage, new Point(blueCargo.x - blueCargo.width/2.0, blueCargo.y - blueCargo.height/2.0), 
+              new Point(blueCargo.x + blueCargo.width/2.0, blueCargo.y + blueCargo.height/2.0), new Scalar(255,0,0), 3);
       }
       else {
-        cargoArea.setDouble(0.0);
+        blueCargoArea.setDouble(0.0);
       }
 
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
@@ -149,7 +173,7 @@ public class CargoTracker implements VisionPipeline {
       */
 
       // Erode the mask image to eliminate the little "noise" pixels
-      Imgproc.erode(maskImage, maskImage, erosionKernel);
+      //Imgproc.erode(maskImage, maskImage, erosionKernel);
 
       // Set up to find contours in the mask image.
       List<MatOfPoint> contours = new ArrayList<>();
@@ -168,17 +192,17 @@ public class CargoTracker implements VisionPipeline {
         // Grab the bounding rectangle for contour:
         Rect bounds = Imgproc.boundingRect(contours.get(cidx));
         double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
-        Imgproc.rectangle(outputImage, bounds.br(), bounds.tl(), new Scalar(255,0,0));
+      //  Imgproc.rectangle(outputImage, bounds.br(), bounds.tl(), new Scalar(255,0,0));
 
         // Only draw contours that have nearly square bounding boxes, and some minimal area... like round things.
         if (bounds.area() > 32 && aspecterr < 0.3) {
           // Now we know it has non-trivial size and is closer to square/round:
 
-          Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
+         // Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
          if (bounds.area() > bestArea){
            bestArea = bounds.area();
-           bestX = bounds.x;
-           bestY = bounds.y;
+           bestX = bounds.x + bounds.width/2.0;
+           bestY = bounds.y + bounds.height/2.0;
            bestWidth = bounds.width;
            bestHeight = bounds.height;
          }
