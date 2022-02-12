@@ -326,21 +326,31 @@ public final class Main {
     System.out.println("Cameras size");
     System.out.println(cameras.size());
 
+    // start image processing on camera 2 if present
+    if (cameras.size() > 0) {
+      CvSource hubStream = CameraServer.getInstance().putVideo("Hub", 320, 240);
+      VisionThread hubTrackerThread = new VisionThread(cameras.get(0),
+              new HubTracker(ntinst, hubStream), pipeline -> {
+        // do something with pipeline results
+      });
+     
+      hubTrackerThread.start();
+    }
     // start image processing on camera 0 if present
-    if (cameras.size() >= 1) {
+    if (cameras.size() > 1) {
       CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo", 320, 240);
-      VisionThread cargoTrackerThread = new VisionThread(cameras.get(0),
+      VisionThread cargoTrackerThread = new VisionThread(cameras.get(1),
               new CargoTracker(ntinst, cargoStream), pipeline -> {
         // do something with pipeline results
       });
      
       cargoTrackerThread.start();
-
     }
+    
      // start image processing on camera 1 if present
-    if (cameras.size() >= 2) {
+    if (cameras.size() > 2) {
       CvSource indexerStream = CameraServer.getInstance().putVideo("Indexer", 320, 240);
-      VisionThread indexerTrackerThread = new VisionThread(cameras.get(1),
+      VisionThread indexerTrackerThread = new VisionThread(cameras.get(2),
               new IndexerTracker(ntinst, indexerStream), pipeline -> {
         // do something with pipeline results
       });
@@ -348,16 +358,7 @@ public final class Main {
       indexerTrackerThread.start();
     }
 
-    // start image processing on camera 2 if present
-    if (cameras.size() >= 3) {
-      CvSource hubStream = CameraServer.getInstance().putVideo("Hub", 320, 240);
-      VisionThread hubTrackerThread = new VisionThread(cameras.get(2),
-              new HubTracker(ntinst, hubStream), pipeline -> {
-        // do something with pipeline results
-      });
-     
-      hubTrackerThread.start();
-    }
+    
 
     // loop forever
     for (;;) {

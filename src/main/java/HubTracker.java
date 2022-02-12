@@ -15,10 +15,12 @@ import org.opencv.core.Size;
 import org.opencv.core.MatOfPoint;
 import org.opencv.features2d.SimpleBlobDetector;
 import org.opencv.imgproc.*;
+import org.opencv.imgcodecs.Imgcodecs;
 import edu.wpi.cscore.CvSource;
     
 public class HubTracker implements VisionPipeline {
     public int frameCounter;
+    public int timeCounter;
     private NetworkTableInstance nti;
     private NetworkTable hubTable;
     private NetworkTableEntry hubX;
@@ -68,7 +70,6 @@ public class HubTracker implements VisionPipeline {
         erosionKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
      }
 
-
     @Override
     public void process(Mat inputImage) {
       frameCounter += 1;
@@ -89,7 +90,6 @@ public class HubTracker implements VisionPipeline {
       double bestArea = 0.0;
       double bestX = 0.0;
       double bestY = 0.0;
-
 
       // Walk the list of contours that we found and draw the ones that meet certain criteria:
       for (int cidx=0; cidx < contours.size(); cidx++) {
@@ -126,6 +126,17 @@ public class HubTracker implements VisionPipeline {
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
 
       output.putFrame(outputImage);
+      
+      if (frameCounter%20 == 0){
+
+      String fileName = "/media/usb_key/hub_image.jpg";
+      if (Imgcodecs.imwrite(fileName, inputImage) == false){
+      System.out.println("failed");
+      }
+      else {
+        System.out.println("Success");
+        }
+      }
     }
   }
 

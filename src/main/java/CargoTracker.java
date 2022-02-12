@@ -43,6 +43,7 @@ public class CargoTracker implements VisionPipeline {
     private NetworkTableEntry blueSMax;
     private NetworkTableEntry blueVMin;
     private NetworkTableEntry blueVMax;
+    private NetworkTableEntry recordImage;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
@@ -106,7 +107,8 @@ public class CargoTracker implements VisionPipeline {
         blueVMin.setDouble(60);
         blueVMax = cargoTable.getEntry("Blue V Max");
         blueVMax.setDouble(252);
-        
+        recordImage = cargoTable.getEntry("Recording");
+        recordImage.setBoolean(false);       
 
 
         output = output_;
@@ -161,7 +163,7 @@ public class CargoTracker implements VisionPipeline {
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
 
-      output.putFrame(inputImage);
+      output.putFrame(inputImage); 
     }
 
     void findCargo(Mat inputImage,Mat maskImage, CargoData cargoData){
