@@ -15,7 +15,9 @@ import org.opencv.core.Size;
 import org.opencv.core.MatOfPoint;
 import org.opencv.features2d.SimpleBlobDetector;
 import org.opencv.imgproc.*;
+import org.opencv.imgcodecs.Imgcodecs;
 import edu.wpi.cscore.CvSource;
+
     
 public class CargoTracker implements VisionPipeline {
     public int frameCounter;
@@ -30,6 +32,7 @@ public class CargoTracker implements VisionPipeline {
     private NetworkTableEntry blueCargoArea;
     private NetworkTableEntry blueCargoX;
     private NetworkTableEntry blueCargoY;
+    public NetworkTableEntry matchNuEntry;
 
     private NetworkTableEntry redHMin;
     private NetworkTableEntry redHMax;
@@ -110,6 +113,7 @@ public class CargoTracker implements VisionPipeline {
         recordImage = cargoTable.getEntry("Recording");
         recordImage.setBoolean(false);       
 
+        matchNuEntry = nti.getTable("FMS Info").getEntry("Match Number");
 
         output = output_;
         hsvImage = new Mat();
@@ -216,6 +220,18 @@ public class CargoTracker implements VisionPipeline {
       cargoData.area = bestArea;
       cargoData.width = bestWidth;
       cargoData.height = bestHeight;
+
+
+
+    if (frameCounter%40 == 0){
+      String fileName = String.format( "/media/usb_key/cargo_match_%d_image_%d.jpg", (int)matchNuEntry.getNumber(0), frameCounter);
+      if (Imgcodecs.imwrite(fileName, inputImage) == false){
+      System.out.println("failed");
+      }
+      else {
+        System.out.println("Success");
+        }
+      }
     }
   }
 

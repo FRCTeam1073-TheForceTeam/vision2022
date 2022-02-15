@@ -13,9 +13,10 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.core.MatOfPoint;
-import org.opencv.features2d.SimpleBlobDetector;
 import org.opencv.imgproc.*;
+import org.opencv.imgcodecs.Imgcodecs;
 import edu.wpi.cscore.CvSource;
+//import org.opencv.features2d.SimpleBlobDetector;
 
 public class IndexerTracker implements VisionPipeline {
     public int frameCounter;
@@ -204,6 +205,16 @@ public class IndexerTracker implements VisionPipeline {
     indexerData.area = bestArea;
     indexerData.width = bestWidth;
     indexerData.height = bestHeight;
+
+   /* if (frameCounter%20 == 0){
+      String fileName = String.format( "/media/usb_key/indexer_image_%d.jpg", frameCounter);
+      if (Imgcodecs.imwrite(fileName, inputImage) == false){
+      System.out.println("failed");
+      }
+      else {
+        System.out.println("Success");
+        }
+      }*/
     }
   }
 

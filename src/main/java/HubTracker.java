@@ -20,7 +20,6 @@ import edu.wpi.cscore.CvSource;
     
 public class HubTracker implements VisionPipeline {
     public int frameCounter;
-    public int timeCounter;
     private NetworkTableInstance nti;
     private NetworkTable hubTable;
     private NetworkTableEntry hubX;
@@ -32,6 +31,7 @@ public class HubTracker implements VisionPipeline {
     private NetworkTableEntry hubSMax;
     private NetworkTableEntry hubVMin;
     private NetworkTableEntry hubVMax;
+    private NetworkTableEntry matchNuEntry;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
@@ -62,6 +62,7 @@ public class HubTracker implements VisionPipeline {
         hubVMax = hubTable.getEntry("V Max");
         hubVMax.setDouble(252);
 
+        matchNuEntry = nti.getTable("FMS Info").getEntry("Match Number");
 
         output = output_;
         hsvImage = new Mat();
@@ -127,9 +128,8 @@ public class HubTracker implements VisionPipeline {
 
       output.putFrame(outputImage);
       
-      if (frameCounter%20 == 0){
-
-      String fileName = "/media/usb_key/hub_image.jpg";
+      if (frameCounter%40 == 0){
+      String fileName = String.format( "/media/usb_key/cargo_match_%d_image_%d.jpg", (int)matchNuEntry.getNumber(0), frameCounter);
       if (Imgcodecs.imwrite(fileName, inputImage) == false){
       System.out.println("failed");
       }
@@ -139,5 +139,4 @@ public class HubTracker implements VisionPipeline {
       }
     }
   }
-
 
