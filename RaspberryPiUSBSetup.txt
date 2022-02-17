@@ -10,7 +10,7 @@ tmpfs           /var/log        tmpfs   nosuid,nodev      0       0
 tmpfs           /var/tmp        tmpfs   nosuid,nodev      0       0
 # a swapfile is not a swap partition, no line here
 #   use  dphys-swapfile swap[on|off]  for that
-/dev/sda1	/media/usb_key	vfat	rw,suid,nodev,auto,user 0 2
+/dev/sda1	/media/usb_key	vfat	rw,user,suid,nodev,auto,uid=1000 0 2
 
 The last line adds a usb_key auto mount at the location /media/usb_key
 
