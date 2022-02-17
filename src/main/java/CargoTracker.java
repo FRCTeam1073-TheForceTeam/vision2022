@@ -224,7 +224,7 @@ public class CargoTracker implements VisionPipeline {
 
 
     if (frameCounter%40 == 0){
-      String fileName = String.format( "/media/usb_key/cargo_match_%d_image_%d.jpg", (int)matchNuEntry.getNumber(0), frameCounter);
+      String fileName = String.format( "/media/usb_key/cargo_match_%d_image_%d.jpg", matchNuEntry.getNumber(0).intValue(), frameCounter);
       if (Imgcodecs.imwrite(fileName, inputImage) == false){
       System.out.println("failed");
       }
