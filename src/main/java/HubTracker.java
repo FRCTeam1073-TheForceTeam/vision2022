@@ -62,7 +62,7 @@ public class HubTracker implements VisionPipeline {
         hubVMax = hubTable.getEntry("V Max");
         hubVMax.setDouble(252);
 
-        matchNuEntry = nti.getTable("FMS Info").getEntry("Match Number");
+        matchNuEntry = nti.getTable("FMSInfo").getEntry("MatchNumber");
 
         output = output_;
         hsvImage = new Mat();

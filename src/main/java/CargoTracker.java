@@ -113,7 +113,7 @@ public class CargoTracker implements VisionPipeline {
         recordImage = cargoTable.getEntry("Recording");
         recordImage.setBoolean(false);       
 
-        matchNuEntry = nti.getTable("FMS Info").getEntry("Match Number");
+        matchNuEntry = nti.getTable("FMSInfo").getEntry("MatchNumber");
 
         output = output_;
         hsvImage = new Mat();
