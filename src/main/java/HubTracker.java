@@ -128,7 +128,9 @@ public class HubTracker implements VisionPipeline {
 
       output.putFrame(outputImage);
       
+      //writes image files of what the hub tracker camera sees
       if (frameCounter%40 == 0){
+      //Names files based on the match number from FMSInfo and frame number
       String fileName = String.format( "/media/usb_key/hub_match_%d_image_%d.jpg", matchNuEntry.getNumber(0).intValue(), frameCounter);
       if (Imgcodecs.imwrite(fileName, inputImage) == false){
       System.out.println("failed");

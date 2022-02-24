@@ -221,9 +221,9 @@ public class CargoTracker implements VisionPipeline {
       cargoData.width = bestWidth;
       cargoData.height = bestHeight;
 
-
-
+      //Writes image files of what the cargo camera sees every 40 frames
     if (frameCounter%40 == 0){
+      //Names file based on match number from FMSInfo and frame number
       String fileName = String.format( "/media/usb_key/cargo_match_%d_image_%d.jpg", matchNuEntry.getNumber(0).intValue(), frameCounter);
       if (Imgcodecs.imwrite(fileName, inputImage) == false){
       System.out.println("failed");
