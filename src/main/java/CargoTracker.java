@@ -170,7 +170,7 @@ public class CargoTracker implements VisionPipeline {
       output.putFrame(inputImage); 
     }
 
-    void findCargo(Mat inputImage,Mat maskImage, CargoData cargoData){
+    void findCargo(Mat inputImage, Mat maskImage, CargoData cargoData){
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
       /*
