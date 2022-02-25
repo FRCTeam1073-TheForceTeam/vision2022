@@ -28,7 +28,9 @@ public class IndexerTracker implements VisionPipeline {
     private NetworkTableEntry blueIndexerX;
     private NetworkTableEntry blueIndexerY;
     private NetworkTableEntry blueIndexerArea;
-    private NetworkTableEntry isRed;
+    private NetworkTableEntry nextRedIndexerArea;
+    private NetworkTableEntry nextBlueIndexerArea;
+    private NetworkTableEntry isCurrentRed;
     private NetworkTableEntry redHMin;
     private NetworkTableEntry redHMax;
     private NetworkTableEntry redSMin;
@@ -41,6 +43,7 @@ public class IndexerTracker implements VisionPipeline {
     private NetworkTableEntry blueSMax;
     private NetworkTableEntry blueVMin;
     private NetworkTableEntry blueVMax;
+    private NetworkTableEntry getNumCargo;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
@@ -73,8 +76,12 @@ public class IndexerTracker implements VisionPipeline {
         blueIndexerY.setDouble(0);
         blueIndexerArea = indexerTable.getEntry("Blue Indexer Area");
         blueIndexerArea.setDouble(0);
-        isRed = indexerTable.getEntry("Is cargo Red");
-        isRed.setBoolean(true);
+        nextRedIndexerArea = indexerTable.getEntry("Next Red Indexer Area");
+        nextRedIndexerArea.setDouble(0);
+        nextBlueIndexerArea = indexerTable.getEntry("Next Blue Indexer Area");
+        nextBlueIndexerArea.setDouble(0);
+        isCurrentRed = indexerTable.getEntry("Is Current Cargo Red");
+        isCurrentRed.setBoolean(false);
         redHMin = indexerTable.getEntry("Red H Min");
         redHMin.setDouble(0);
         redHMax = indexerTable.getEntry("Red H Max");
@@ -99,6 +106,8 @@ public class IndexerTracker implements VisionPipeline {
         blueVMin.setDouble(60);
         blueVMax = indexerTable.getEntry("Blue V Max");
         blueVMax.setDouble(252);
+        getNumCargo = indexerTable.getEntry("Number of Cargo");
+        getNumCargo.setDouble(0);
 
 
         output = output_;
@@ -129,7 +138,7 @@ public class IndexerTracker implements VisionPipeline {
           redIndexerX.setDouble(redIndexer.x);
           redIndexerY.setDouble(redIndexer.y);
           redIndexerArea.setDouble(redIndexer.area);
-          isRed.setBoolean(true);
+          isCurrentRed.setBoolean(true);
           Imgproc.rectangle(inputImage, new Point(redIndexer.x - redIndexer.width/2.0, redIndexer.y - redIndexer.height/2.0), 
               new Point(redIndexer.x + redIndexer.width/2.0, redIndexer.y + redIndexer.height/2.0), new Scalar(0,0,255), 3);
       }
@@ -141,7 +150,7 @@ public class IndexerTracker implements VisionPipeline {
           blueIndexerX.setDouble(blueIndexer.x);
           blueIndexerY.setDouble(blueIndexer.y);
           blueIndexerArea.setDouble(blueIndexer.area);
-          isRed.setBoolean(false);
+          isCurrentRed.setBoolean(false);
           Imgproc.rectangle(inputImage, new Point(blueIndexer.x - blueIndexer.width/2.0, blueIndexer.y - blueIndexer.height/2.0), 
               new Point(blueIndexer.x + blueIndexer.width/2.0, blueIndexer.y + blueIndexer.height/2.0), new Scalar(255,0,0), 3);
       }
@@ -149,6 +158,12 @@ public class IndexerTracker implements VisionPipeline {
         blueIndexerArea.setDouble(0.0);
       }
 
+      if (blueIndexer.y < 120) {
+        nextBlueIndexerArea.setDouble(blueIndexer.area);
+      }
+      if (redIndexer.y < 120) {
+        nextBlueIndexerArea.setDouble(blueIndexer.area);
+      }
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
 
@@ -176,6 +191,11 @@ public class IndexerTracker implements VisionPipeline {
     double bestY = 0.0;
     double bestWidth = 0.0;
     double bestHeight = 0.0;
+    double secondBestArea = 0.0;
+    double secondBestX = 0.0;
+    double secondBestY = 0.0;
+    double secondBestWidth = 0.0;
+    double secondBestHeight = 0.0;
 
 
     // Walk the list of contours that we found and draw the ones that meet certain criteria:
