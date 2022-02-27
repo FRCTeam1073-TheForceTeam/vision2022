@@ -326,17 +326,8 @@ public final class Main {
     System.out.println("Cameras size");
     System.out.println(cameras.size());
 
-    // start image processing on camera 2 if present
-    if (cameras.size() > 0) {
-      CvSource hubStream = CameraServer.getInstance().putVideo("Hub", 320, 240);
-      VisionThread hubTrackerThread = new VisionThread(cameras.get(0),
-              new HubTracker(ntinst, hubStream), pipeline -> {
-        // do something with pipeline results
-      });
-     
-      hubTrackerThread.start();
-    }
-    // start image processing on camera 0 if present
+    
+     // start image processing on camera 2 if present
     if (cameras.size() > 1) {
       CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo", 320, 240);
       VisionThread cargoTrackerThread = new VisionThread(cameras.get(1),
@@ -346,7 +337,7 @@ public final class Main {
      
       cargoTrackerThread.start();
     }
-    
+
      // start image processing on camera 1 if present
     if (cameras.size() > 2) {
       CvSource indexerStream = CameraServer.getInstance().putVideo("Indexer", 320, 240);
@@ -358,7 +349,17 @@ public final class Main {
       indexerTrackerThread.start();
     }
 
-    
+// start image processing on camera 0 if present
+    if (cameras.size() > 3) {
+      CvSource hubStream = CameraServer.getInstance().putVideo("Hub", 320, 240);
+      VisionThread hubTrackerThread = new VisionThread(cameras.get(3),
+              new HubTracker(ntinst, hubStream), pipeline -> {
+        // do something with pipeline results
+      });
+     
+      hubTrackerThread.start();
+    }
+   
 
     // loop forever
     for (;;) {

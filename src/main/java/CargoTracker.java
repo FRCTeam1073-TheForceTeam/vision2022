@@ -47,6 +47,7 @@ public class CargoTracker implements VisionPipeline {
     private NetworkTableEntry blueVMin;
     private NetworkTableEntry blueVMax;
     private NetworkTableEntry recordImage;
+    private NetworkTableEntry saveCargoImage;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
@@ -111,7 +112,8 @@ public class CargoTracker implements VisionPipeline {
         blueVMax = cargoTable.getEntry("Blue V Max");
         blueVMax.setDouble(252);
         recordImage = cargoTable.getEntry("Recording");
-        recordImage.setBoolean(false);       
+        recordImage.setBoolean(false);
+        saveCargoImage = cargoTable.getEntry("Save Cargo Image");
 
         matchNuEntry = nti.getTable("FMSInfo").getEntry("MatchNumber");
 
@@ -221,17 +223,20 @@ public class CargoTracker implements VisionPipeline {
       cargoData.width = bestWidth;
       cargoData.height = bestHeight;
 
-      //Writes image files of what the cargo camera sees every 40 frames
-    if (frameCounter%40 == 0){
-      //Names file based on match number from FMSInfo and frame number
-      String fileName = String.format( "/media/usb_key/cargo_match_%d_image_%d.jpg", matchNuEntry.getNumber(0).intValue(), frameCounter);
-      if (Imgcodecs.imwrite(fileName, inputImage) == false){
-      System.out.println("failed");
-      }
-      else {
-        System.out.println("Success");
+    if (saveCargoImage.getBoolean(false) == true) {
+    //Writes image files of what the cargo camera sees every 40 frames
+      if (frameCounter%40 == 0){
+        //Names file based on match number from FMSInfo and frame number
+        String fileName = String.format( "/media/usb_key/cargo_match_%d_image_%d.jpg", matchNuEntry.getNumber(0).intValue(), frameCounter);
+        if (Imgcodecs.imwrite(fileName, inputImage) == false){
+        System.out.println("failed");
+        }
+        else {
+          System.out.println("Success");
+          }
         }
       }
     }
   }
+  
 

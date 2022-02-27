@@ -1,4 +1,5 @@
 import edu.wpi.first.vision.VisionPipeline;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -32,6 +33,8 @@ public class HubTracker implements VisionPipeline {
     private NetworkTableEntry hubVMin;
     private NetworkTableEntry hubVMax;
     private NetworkTableEntry matchNuEntry;
+    private NetworkTableEntry enabledState;
+    private NetworkTableEntry saveHubImage;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
@@ -61,6 +64,8 @@ public class HubTracker implements VisionPipeline {
         hubVMin.setDouble(60);
         hubVMax = hubTable.getEntry("V Max");
         hubVMax.setDouble(252);
+        saveHubImage = hubTable.getEntry("Save Hub Images");
+        saveHubImage.setBoolean(false);
 
         matchNuEntry = nti.getTable("FMSInfo").getEntry("MatchNumber");
 
@@ -100,7 +105,7 @@ public class HubTracker implements VisionPipeline {
         Imgproc.rectangle(outputImage, bounds.br(), bounds.tl(), new Scalar(255,0,0));
 
         // Only draw contours that have nearly square bounding boxes, and some minimal area... like round things.
-        if (bounds.area() > 32 && aspecterr < 0.3) {
+       // if (bounds.area() > 32 && aspecterr < 0.3) {
           // Now we know it has non-trivial size and is closer to square/round:
 
           Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
@@ -110,7 +115,7 @@ public class HubTracker implements VisionPipeline {
            bestY = bounds.y;
          }
         }
-      }
+        // }
       //sends our best answer if found
       if (bestArea > 0.0){
           hubX.setDouble(bestX);
@@ -127,9 +132,10 @@ public class HubTracker implements VisionPipeline {
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
 
       output.putFrame(outputImage);
-      
+     
+    if (saveHubImage.getBoolean(false) == true) {
       //writes image files of what the hub tracker camera sees
-      if (frameCounter%40 == 0){
+     if (frameCounter%40 == 0){
       //Names files based on the match number from FMSInfo and frame number
       String fileName = String.format( "/media/usb_key/hub_match_%d_image_%d.jpg", matchNuEntry.getNumber(0).intValue(), frameCounter);
       if (Imgcodecs.imwrite(fileName, inputImage) == false){
@@ -141,4 +147,6 @@ public class HubTracker implements VisionPipeline {
       }
     }
   }
+  }
+  
 

@@ -9,6 +9,7 @@ import java.util.List;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
+import org.opencv.core.Range;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -22,15 +23,9 @@ public class IndexerTracker implements VisionPipeline {
     public int frameCounter;
     private NetworkTableInstance nti;
     private NetworkTable indexerTable;
-    private NetworkTableEntry redIndexerX;
-    private NetworkTableEntry redIndexerY;
-    private NetworkTableEntry redIndexerArea;
-    private NetworkTableEntry blueIndexerX;
-    private NetworkTableEntry blueIndexerY;
-    private NetworkTableEntry blueIndexerArea;
-    private NetworkTableEntry nextRedIndexerArea;
-    private NetworkTableEntry nextBlueIndexerArea;
-    private NetworkTableEntry isCurrentRed;
+    private NetworkTableEntry total;
+    private NetworkTableEntry current;
+    private NetworkTableEntry next;
     private NetworkTableEntry redHMin;
     private NetworkTableEntry redHMax;
     private NetworkTableEntry redSMin;
@@ -43,14 +38,24 @@ public class IndexerTracker implements VisionPipeline {
     private NetworkTableEntry blueSMax;
     private NetworkTableEntry blueVMin;
     private NetworkTableEntry blueVMax;
-    private NetworkTableEntry getNumCargo;
     private CvSource output;
     private Mat hsvImage;
-    private Mat maskImage;
+    private Mat blueMask;
+    private Mat redMask;
     private Mat outputImage;
     private Mat erosionKernel;
+    private Mat nextMat;
+    private Mat currentMat;
 
     public class IndexerData{
+      public void clear(){
+        x = 0;
+        y = 0; 
+        width = 0;
+        height = 0;
+        area = 0;
+        isRed = false;
+      }
       public double x;
       public double y;
       public double width;
@@ -64,24 +69,12 @@ public class IndexerTracker implements VisionPipeline {
     public IndexerTracker(NetworkTableInstance ntinst, CvSource output_){
         nti = ntinst;
         indexerTable = nti.getTable("INDEXER");
-        redIndexerX = indexerTable.getEntry("Red Indexer X");
-        redIndexerX.setDouble(0);
-        redIndexerY = indexerTable.getEntry("Red Indexer Y");
-        redIndexerY.setDouble(0);
-        redIndexerArea = indexerTable.getEntry("Red Indexer Area");
-        redIndexerArea.setDouble(0);
-        blueIndexerX = indexerTable.getEntry("Blue Indexer X");
-        blueIndexerX.setDouble(0);
-        blueIndexerY = indexerTable.getEntry("Blue Indexer Y");
-        blueIndexerY.setDouble(0);
-        blueIndexerArea = indexerTable.getEntry("Blue Indexer Area");
-        blueIndexerArea.setDouble(0);
-        nextRedIndexerArea = indexerTable.getEntry("Next Red Indexer Area");
-        nextRedIndexerArea.setDouble(0);
-        nextBlueIndexerArea = indexerTable.getEntry("Next Blue Indexer Area");
-        nextBlueIndexerArea.setDouble(0);
-        isCurrentRed = indexerTable.getEntry("Is Current Cargo Red");
-        isCurrentRed.setBoolean(false);
+        total = indexerTable.getEntry("Total Cargo");
+        total.setDouble(0);
+        current = indexerTable.getEntry("Current Cargo");
+        current.setDouble(0);
+        next = indexerTable.getEntry("Next Cargo");
+        next.setDouble(0);
         redHMin = indexerTable.getEntry("Red H Min");
         redHMin.setDouble(0);
         redHMax = indexerTable.getEntry("Red H Max");
@@ -106,14 +99,15 @@ public class IndexerTracker implements VisionPipeline {
         blueVMin.setDouble(60);
         blueVMax = indexerTable.getEntry("Blue V Max");
         blueVMax.setDouble(252);
-        getNumCargo = indexerTable.getEntry("Number of Cargo");
-        getNumCargo.setDouble(0);
 
 
         output = output_;
         hsvImage = new Mat();
-        maskImage = new Mat();
+        blueMask = new Mat();
+        redMask =new Mat();
         outputImage = new Mat();
+        nextMat = new Mat();
+        currentMat = new Mat();
         erosionKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
     }
 
@@ -122,111 +116,63 @@ public class IndexerTracker implements VisionPipeline {
       frameCounter += 1;
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-
-     Core.inRange(hsvImage, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), 
-          new Scalar(redHMax.getDouble(30), redSMax.getDouble(250), redVMax.getDouble(240)), maskImage);
-      IndexerData redIndexer = new IndexerData();
-      findCargo(inputImage, maskImage, redIndexer);
-
-      Core.inRange(hsvImage, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), 
-         new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), maskImage);
-      IndexerData blueIndexer = new IndexerData();
-      findCargo(inputImage, maskImage, blueIndexer);
-
-      //sends our best answer if found
-      if (redIndexer.area > 0.0){
-          redIndexerX.setDouble(redIndexer.x);
-          redIndexerY.setDouble(redIndexer.y);
-          redIndexerArea.setDouble(redIndexer.area);
-          isCurrentRed.setBoolean(true);
-          Imgproc.rectangle(inputImage, new Point(redIndexer.x - redIndexer.width/2.0, redIndexer.y - redIndexer.height/2.0), 
-              new Point(redIndexer.x + redIndexer.width/2.0, redIndexer.y + redIndexer.height/2.0), new Scalar(0,0,255), 3);
-      }
-      else {
-        redIndexerArea.setDouble(0.0);
-      }
       
-      if (blueIndexer.area > 0.0){
-          blueIndexerX.setDouble(blueIndexer.x);
-          blueIndexerY.setDouble(blueIndexer.y);
-          blueIndexerArea.setDouble(blueIndexer.area);
-          isCurrentRed.setBoolean(false);
-          Imgproc.rectangle(inputImage, new Point(blueIndexer.x - blueIndexer.width/2.0, blueIndexer.y - blueIndexer.height/2.0), 
-              new Point(blueIndexer.x + blueIndexer.width/2.0, blueIndexer.y + blueIndexer.height/2.0), new Scalar(255,0,0), 3);
-      }
-      else {
-        blueIndexerArea.setDouble(0.0);
-      }
+      Mat currentROI; 
+        Range rowRange = new Range(160, 320);
+        Range colRange = new Range(0,320);
+        currentROI = new Mat(currentMat, rowRange, colRange);
+      
+      Mat nextROI;
+        Range nextRowRange = new Range(0,160);
+        Range nextColRange = new Range(0,320);
+        nextROI = new Mat(nextMat, nextColRange, nextRowRange);
 
-      if (blueIndexer.y < 120) {
-        nextBlueIndexerArea.setDouble(blueIndexer.area);
-      }
-      if (redIndexer.y < 120) {
-        nextBlueIndexerArea.setDouble(blueIndexer.area);
-      }
-     // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
-      //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
+       Core.inRange(currentROI, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), 
+          new Scalar(redHMax.getDouble(30), redSMax.getDouble(250), redVMax.getDouble(240)), redMask);
+        Core.inRange(currentROI, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), 
+          new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), blueMask);
+      IndexerData currentIndexer = new IndexerData();
+      findCargo(currentROI, redMask, blueMask, currentIndexer);
 
-      output.putFrame(inputImage);
-     }
+      Core.inRange(nextROI, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), 
+          new Scalar(redHMax.getDouble(30), redSMax.getDouble(250), redVMax.getDouble(240)), redMask);
+      Core.inRange(nextROI, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), 
+         new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), blueMask);
+      IndexerData nextIndexer = new IndexerData();
+      findCargo(nextROI, redMask, blueMask, nextIndexer);
 
-  void findCargo(Mat inputImage, Mat maskImage, IndexerData indexerData){
-    outputImage.setTo(new Scalar(0,0,0));
-    Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
-    /*
-    red cargo: H max(30), H min(0), S max(255), S min(90), V max(252), V min(60)
-    blue cargo: H max(165), H min(130), S max(255), S min(90), V max(252), V min(60)
-    */
-
-    // Erode the mask image to eliminate the little "noise" pixels
-    //Imgproc.erode(maskImage, maskImage, erosionKernel);
-
-    // Set up to find contours in the mask image.
-    List<MatOfPoint> contours = new ArrayList<>();
-    Mat hierarchy = new Mat();
-    Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-
-    double bestArea = 0.0;
-    double bestX = 0.0;
-    double bestY = 0.0;
-    double bestWidth = 0.0;
-    double bestHeight = 0.0;
-    double secondBestArea = 0.0;
-    double secondBestX = 0.0;
-    double secondBestY = 0.0;
-    double secondBestWidth = 0.0;
-    double secondBestHeight = 0.0;
-
-
-    // Walk the list of contours that we found and draw the ones that meet certain criteria:
-    for (int cidx=0; cidx < contours.size(); cidx++) {
-      // Grab the bounding rectangle for contour:
-      Rect bounds = Imgproc.boundingRect(contours.get(cidx));
-      double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
-    //  Imgproc.rectangle(outputImage, bounds.br(), bounds.tl(), new Scalar(255,0,0));
-
-      // Only draw contours that have nearly square bounding boxes, and some minimal area... like round things.
-      if (bounds.area() > 32 && aspecterr < 0.3) {
-        // Now we know it has non-trivial size and is closer to square/round:
-
-        // Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
-        if (bounds.area() > bestArea){
-          bestArea = bounds.area();
-          bestX = bounds.x + bounds.width/2.0;
-          bestY = bounds.y + bounds.height/2.0;
-          bestWidth = bounds.width;
-          bestHeight = bounds.height;
+      double totalCargo = 0;
+      if (currentIndexer.area > 0) {
+        totalCargo = totalCargo + 1;
+        if (currentIndexer.isRed == true) {
+          current.setDouble(1);
+        }
+        else {
+          current.setDouble(2);
         }
       }
-    }
-    //sends our best answer if found
-    indexerData.x = bestX;
-    indexerData.y = bestY;
-    indexerData.area = bestArea;
-    indexerData.width = bestWidth;
-    indexerData.height = bestHeight;
+      else {
+        current.setDouble(0);
+      }
+      
+      if (nextIndexer.area > 0) {
+        totalCargo = totalCargo + 1;
+        if (nextIndexer.isRed == true) {
+          next.setDouble(1);
+        }
+        else {
+          next.setDouble(2);
+        }
+      }
+      else {
+        next.setDouble(0);
+      }
 
-   /* if (frameCounter%20 == 0){
+      total.setDouble(totalCargo);
+
+      output.putFrame(inputImage);
+      
+      /* if (frameCounter%20 == 0){
       String fileName = String.format( "/media/usb_key/indexer_image_%d.jpg", frameCounter);
       if (Imgcodecs.imwrite(fileName, inputImage) == false){
       System.out.println("failed");
@@ -235,6 +181,34 @@ public class IndexerTracker implements VisionPipeline {
         System.out.println("Success");
         }
       }*/
+     }
+
+  void findCargo(Mat inputImage, Mat redMask, Mat blueMask, IndexerData indexerData){
+
+   double redCount = countPixels(redMask);
+   double blueCount = countPixels(blueMask);
+
+    indexerData.clear();
+   
+    if (redCount > blueCount && redCount > 30) {
+      indexerData.area = redCount;
+      indexerData.isRed = true;
+    }
+    else if (blueCount > 30) {
+      indexerData.area = blueCount;
+      indexerData.isRed = false;
     }
   }
 
+  public double countPixels(Mat img) {
+    double pixelCounter = 0;
+    for (int row = 0; row < img.rows(); row = row + 1){
+      for (int col = 0; col < img.cols(); col = col + 1) {
+        if (img.get(row, col)[0] > 0){
+          pixelCounter = pixelCounter + 1;
+        }
+      }
+    }
+    return pixelCounter;
+  }
+}
