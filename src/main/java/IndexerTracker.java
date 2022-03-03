@@ -17,7 +17,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.imgproc.*;
 import org.opencv.imgcodecs.Imgcodecs;
 import edu.wpi.cscore.CvSource;
-//import org.opencv.features2d.SimpleBlobDetector;
 
 public class IndexerTracker implements VisionPipeline {
     public int frameCounter;
@@ -117,19 +116,12 @@ public class IndexerTracker implements VisionPipeline {
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
       
-      Mat currentROI; 
-        Range rowRange = new Range(160, 320);
-        Range colRange = new Range(0,320);
-        currentROI = new Mat(currentMat, rowRange, colRange);
-      
-      Mat nextROI;
-        Range nextRowRange = new Range(0,160);
-        Range nextColRange = new Range(0,320);
-        nextROI = new Mat(nextMat, nextColRange, nextRowRange);
+      Mat currentROI = hsvImage.submat(0, hsvImage.rows()-1, 0, hsvImage.cols()/2-1);
+      Mat nextROI = hsvImage.submat(0, hsvImage.rows()-1, hsvImage.cols()/2, hsvImage.cols()-1);
 
-       Core.inRange(currentROI, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), 
+      Core.inRange(currentROI, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), 
           new Scalar(redHMax.getDouble(30), redSMax.getDouble(250), redVMax.getDouble(240)), redMask);
-        Core.inRange(currentROI, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), 
+      Core.inRange(currentROI, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), 
           new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), blueMask);
       IndexerData currentIndexer = new IndexerData();
       findCargo(currentROI, redMask, blueMask, currentIndexer);
@@ -140,6 +132,9 @@ public class IndexerTracker implements VisionPipeline {
          new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), blueMask);
       IndexerData nextIndexer = new IndexerData();
       findCargo(nextROI, redMask, blueMask, nextIndexer);
+
+      String msg = String.format("Indexer: Current A %f, Next A %f", currentIndexer.area, nextIndexer.area);
+      System.out.println(msg);
 
       double totalCargo = 0;
       if (currentIndexer.area > 0) {
@@ -170,6 +165,8 @@ public class IndexerTracker implements VisionPipeline {
 
       total.setDouble(totalCargo);
 
+      // TODO: Draw on input image for debugging?
+
       output.putFrame(inputImage);
       
       /* if (frameCounter%20 == 0){
@@ -188,7 +185,7 @@ public class IndexerTracker implements VisionPipeline {
    double redCount = countPixels(redMask);
    double blueCount = countPixels(blueMask);
 
-    indexerData.clear();
+  indexerData.clear();
    
     if (redCount > blueCount && redCount > 30) {
       indexerData.area = redCount;
