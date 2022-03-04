@@ -148,6 +148,8 @@ public class IndexerTracker implements VisionPipeline {
         else {
           current.setDouble(2);
         }
+        Imgproc.rectangle(inputImage, new Point(currentIndexer.x - currentIndexer.width/2.0, currentIndexer.y - currentIndexer.height/2.0), 
+              new Point(currentIndexer.x + currentIndexer.width/2.0, currentIndexer.y + currentIndexer.height/2.0), new Scalar(0,0,255), 3);
       }
       else {
         current.setDouble(0);
@@ -161,6 +163,8 @@ public class IndexerTracker implements VisionPipeline {
         else {
           next.setDouble(2);
         }
+        Imgproc.rectangle(inputImage, new Point(nextIndexer.x - nextIndexer.width/2.0, nextIndexer.y - nextIndexer.height/2.0), 
+              new Point(nextIndexer.x + nextIndexer.width/2.0, nextIndexer.y + nextIndexer.height/2.0), new Scalar(0,0,255), 3);
       }
       else {
         next.setDouble(0);
@@ -170,7 +174,9 @@ public class IndexerTracker implements VisionPipeline {
 
       // TODO: Draw on input image for debugging?
 
-      output.putFrame(inputImage);
+      //Imgproc.rectangle(inputImage, new Point(20,20), new Point(120,120), new Scalar(0,0,255),3);
+
+      output.putFrame(redMask);
 
       if (saveIndexerImage.getBoolean(false) == true) {
         if (frameCounter%20 == 0){
