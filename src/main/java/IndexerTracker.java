@@ -37,6 +37,7 @@ public class IndexerTracker implements VisionPipeline {
     private NetworkTableEntry blueSMax;
     private NetworkTableEntry blueVMin;
     private NetworkTableEntry blueVMax;
+    private NetworkTableEntry saveIndexerImage;
     private CvSource output;
     private Mat hsvImage;
     private Mat blueMask;
@@ -98,6 +99,8 @@ public class IndexerTracker implements VisionPipeline {
         blueVMin.setDouble(60);
         blueVMax = indexerTable.getEntry("Blue V Max");
         blueVMax.setDouble(252);
+        saveIndexerImage = indexerTable.getEntry("Save Indexer Image");
+
 
 
         output = output_;
@@ -168,17 +171,19 @@ public class IndexerTracker implements VisionPipeline {
       // TODO: Draw on input image for debugging?
 
       output.putFrame(inputImage);
-      
-      /* if (frameCounter%20 == 0){
-      String fileName = String.format( "/media/usb_key/indexer_image_%d.jpg", frameCounter);
-      if (Imgcodecs.imwrite(fileName, inputImage) == false){
-      System.out.println("failed");
-      }
-      else {
-        System.out.println("Success");
+
+      if (saveIndexerImage.getBoolean(false) == true) {
+        if (frameCounter%20 == 0){
+        String fileName = String.format( "/media/usb_key/indexer_image_%d.jpg", frameCounter);
+          if (Imgcodecs.imwrite(fileName, inputImage) == false){
+          System.out.println("failed");
+          }
+        else {
+          System.out.println("Success");
+          }
         }
-      }*/
-     }
+      }
+    }
 
   void findCargo(Mat inputImage, Mat redMask, Mat blueMask, IndexerData indexerData){
 
