@@ -147,6 +147,6 @@ public class HubTracker implements VisionPipeline {
       }
     }
   }
-  }
+}
   
 
