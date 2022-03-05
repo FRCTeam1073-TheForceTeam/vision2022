@@ -7,6 +7,8 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.transform.Templates;
+
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -39,6 +41,7 @@ public class HubTracker implements VisionPipeline {
     private Mat hsvImage;
     private Mat maskImage;
     private Mat outputImage;
+    private Mat template;
     private Mat erosionKernel;
 
     //private SimpleBlobDetectorParams blobParam
@@ -73,6 +76,15 @@ public class HubTracker implements VisionPipeline {
         hsvImage = new Mat();
         maskImage = new Mat();
         outputImage = new Mat();
+        template = new Mat();
+        Mat templateInput = Imgcodecs.imread("/home/pi/hubtemplate.jpg");
+        if (!templateInput.empty()){
+          Imgproc.cvtColor(templateInput, templateInput, Imgproc.COLOR_BGR2GRAY);
+          Imgproc.Canny(templateInput, template, 90, 100);
+        }
+        else {
+          System.out.println("template image not found");
+        }
         erosionKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(7,7));
      }
 
@@ -129,9 +141,33 @@ public class HubTracker implements VisionPipeline {
 
 
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
+      
+      Mat edges = new Mat();
+      Mat inputGrayScale = new Mat();
+      Imgproc.cvtColor( inputImage, inputGrayScale, Imgproc.COLOR_BGR2GRAY);
+      Imgproc.Canny(inputGrayScale, edges, 90, 100);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
+    
+      GeneralizedHough detector = Imgproc.createGeneralizedHoughBallard();
+      detector.setCannyLowThresh(90);
+      detector.setCannyHighThresh(100);
+     
+      if (!template.empty()){
+        detector.setTemplate(template);
+        Mat positions = new Mat();
+        detector.detect(inputGrayScale, positions);
+        for (int index = 0; index < positions.rows(); index = index + 1){
+          Point pos = new Point(positions.get(index, 0)[0], positions.get(index, 1)[0]);
+          double angle = positions.get(index, 0)[3];
+          Imgproc.line(inputImage, new Point(0, pos.y), new Point(inputImage.cols()-1, pos.y), new Scalar(0, 0, 255));
+          Imgproc.line(inputImage, new Point(pos.x, 0), new Point(pos.x, inputImage.rows()-1), new Scalar(0, 0, 255));
+        }
+        if (positions.rows() == 0){
+          System.out.println("Position is Empty");
+        }
+      }
 
-      output.putFrame(outputImage);
+      output.putFrame(inputImage);
      
     if (saveHubImage.getBoolean(false) == true) {
       //writes image files of what the hub tracker camera sees

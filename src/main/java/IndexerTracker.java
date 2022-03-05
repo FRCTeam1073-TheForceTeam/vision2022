@@ -137,8 +137,8 @@ public class IndexerTracker implements VisionPipeline {
       IndexerData nextIndexer = new IndexerData();
       findCargo(nextROI, redMask, blueMask, nextIndexer);
 
-      String msg = String.format("Indexer: Current A %f, Next A %f", currentIndexer.area, nextIndexer.area);
-      System.out.println(msg);
+      //String msg = String.format("Indexer: Current A %f, Next A %f", currentIndexer.area, nextIndexer.area);
+      //System.out.println(msg);
 
       double totalCargo = 0;
       if (currentIndexer.area > 0) {
@@ -175,9 +175,9 @@ public class IndexerTracker implements VisionPipeline {
 
       // TODO: Draw on input image for debugging?
 
-      //Imgproc.rectangle(inputImage, new Point(20,20), new Point(120,120), new Scalar(0,0,255),3);
+      Imgproc.rectangle(blueMask, new Point(20,20), new Point(120,120), new Scalar(0,0,255),3);
 
-      output.putFrame(redMask);
+      output.putFrame(blueMask);
 
       if (saveIndexerImage.getBoolean(false) == true) {
         if (frameCounter%20 == 0){
