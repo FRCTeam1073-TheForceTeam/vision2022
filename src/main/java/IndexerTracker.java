@@ -38,6 +38,7 @@ public class IndexerTracker implements VisionPipeline {
     private NetworkTableEntry blueVMin;
     private NetworkTableEntry blueVMax;
     private NetworkTableEntry saveIndexerImage;
+    private NetworkTableEntry matchNuEntry;
     private CvSource output;
     private Mat hsvImage;
     private Mat blueMask;
@@ -101,7 +102,7 @@ public class IndexerTracker implements VisionPipeline {
         blueVMax.setDouble(252);
         saveIndexerImage = indexerTable.getEntry("Save Indexer Image");
 
-
+        matchNuEntry = nti.getTable("FMSInfo").getEntry("MatchNumber");
 
         output = output_;
         hsvImage = new Mat();
@@ -180,7 +181,7 @@ public class IndexerTracker implements VisionPipeline {
 
       if (saveIndexerImage.getBoolean(false) == true) {
         if (frameCounter%20 == 0){
-        String fileName = String.format( "/media/usb_key/indexer_image_%d.jpg", frameCounter);
+        String fileName = String.format( "/media/usb_key/indexer_match_%d_image_%d.jpg", matchNuEntry.getNumber(0).intValue(), frameCounter);
           if (Imgcodecs.imwrite(fileName, inputImage) == false){
           System.out.println("failed");
           }
