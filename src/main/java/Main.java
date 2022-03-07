@@ -328,9 +328,9 @@ public final class Main {
 
     
      // start image processing on camera 2 if present
-    if (cameras.size() > 1) {
+    if (cameras.size() > 0) {
       CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo", 320, 240);
-      VisionThread cargoTrackerThread = new VisionThread(cameras.get(1),
+      VisionThread cargoTrackerThread = new VisionThread(cameras.get(0),
               new CargoTracker(ntinst, cargoStream), pipeline -> {
         // do something with pipeline results
       });
@@ -338,27 +338,28 @@ public final class Main {
       cargoTrackerThread.start();
     }
 
-     // start image processing on camera 1 if present
-    if (cameras.size() > 2) {
-      CvSource indexerStream = CameraServer.getInstance().putVideo("Indexer", 320, 240);
-      VisionThread indexerTrackerThread = new VisionThread(cameras.get(2),
-              new IndexerTracker(ntinst, indexerStream), pipeline -> {
-        // do something with pipeline results
-      });
-     
-      indexerTrackerThread.start();
-    }
 
 // start image processing on camera 0 if present
-    if (cameras.size() > 3) {
+    if (cameras.size() > 1) {
       CvSource hubStream = CameraServer.getInstance().putVideo("Hub", 320, 240);
-      VisionThread hubTrackerThread = new VisionThread(cameras.get(3),
+      VisionThread hubTrackerThread = new VisionThread(cameras.get(1),
               new HubTracker(ntinst, hubStream), pipeline -> {
         // do something with pipeline results
       });
      
       hubTrackerThread.start();
     }
+
+         // start image processing on camera 1 if present
+         if (cameras.size() > 2) {
+          CvSource indexerStream = CameraServer.getInstance().putVideo("Indexer", 320, 240);
+          VisionThread indexerTrackerThread = new VisionThread(cameras.get(2),
+                  new IndexerTracker(ntinst, indexerStream), pipeline -> {
+            // do something with pipeline results
+          });
+         
+          indexerTrackerThread.start();
+        }
    
 
     // loop forever
