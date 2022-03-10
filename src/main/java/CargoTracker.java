@@ -88,29 +88,29 @@ public class CargoTracker implements VisionPipeline {
         isRed = cargoTable.getEntry("Is Cargo Red");
         isRed.setBoolean(true);
         redHMin = cargoTable.getEntry("Red H Min");
-        redHMin.setDouble(0);
+        redHMin.setDouble(250);
         redHMax = cargoTable.getEntry("Red H Max");
-        redHMax.setDouble(30);
+        redHMax.setDouble(255);
         redSMin = cargoTable.getEntry("Red S Min");
-        redSMin.setDouble(90);
+        redSMin.setDouble(160);
         redSMax = cargoTable.getEntry("Red S Max");
         redSMax.setDouble(255);
         redVMin = cargoTable.getEntry("Red V Min");
-        redVMin.setDouble(60);
+        redVMin.setDouble(90);
         redVMax = cargoTable.getEntry("Red V Max");
-        redVMax.setDouble(252);
+        redVMax.setDouble(255);
         blueHMin = cargoTable.getEntry("Blue H Min");
-        blueHMin.setDouble(130);
+        blueHMin.setDouble(145);
         blueHMax = cargoTable.getEntry("Blue H max");
-        blueHMax.setDouble(165);
+        blueHMax.setDouble(170);
         blueSMin = cargoTable.getEntry("Blue S Min");
-        blueSMin.setDouble(90);
+        blueSMin.setDouble(160);
         blueSMax = cargoTable.getEntry("Blue S Max");
-        blueSMax.setDouble(255);
+        blueSMax.setDouble(200);
         blueVMin = cargoTable.getEntry("Blue V Min");
-        blueVMin.setDouble(60);
+        blueVMin.setDouble(90);
         blueVMax = cargoTable.getEntry("Blue V Max");
-        blueVMax.setDouble(252);
+        blueVMax.setDouble(255);
         recordImage = cargoTable.getEntry("Recording");
         recordImage.setBoolean(false);
         saveCargoImage = cargoTable.getEntry("Save Cargo Image");
@@ -131,13 +131,13 @@ public class CargoTracker implements VisionPipeline {
      
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
 
-     Core.inRange(hsvImage, new Scalar(redHMin.getDouble(0), redSMin.getDouble(90), redVMin.getDouble(20)), 
-          new Scalar(redHMax.getDouble(30), redSMax.getDouble(250), redVMax.getDouble(240)), maskImage);
+     Core.inRange(hsvImage, new Scalar(redHMin.getDouble(250), redSMin.getDouble(160), redVMin.getDouble(90)), 
+          new Scalar(redHMax.getDouble(255), redSMax.getDouble(255), redVMax.getDouble(255)), maskImage);
       CargoData redCargo = new CargoData();
       findCargo(inputImage, maskImage, redCargo);
-
-      Core.inRange(hsvImage, new Scalar(blueHMin.getDouble(0), blueSMin.getDouble(50), blueVMin.getDouble(20)), 
-         new Scalar(blueHMax.getDouble(30), blueSMax.getDouble(250), blueVMax.getDouble(240)), maskImage);
+     
+      Core.inRange(hsvImage, new Scalar(blueHMin.getDouble(145), blueSMin.getDouble(160), blueVMin.getDouble(90)), 
+         new Scalar(blueHMax.getDouble(170), blueSMax.getDouble(200), blueVMax.getDouble(255)), maskImage);
       CargoData blueCargo = new CargoData();
       findCargo(inputImage, maskImage, blueCargo);
 
@@ -168,8 +168,9 @@ public class CargoTracker implements VisionPipeline {
 
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
-
+      
       output.putFrame(inputImage); 
+
     }
 
     void findCargo(Mat inputImage, Mat maskImage, CargoData cargoData){
@@ -206,13 +207,15 @@ public class CargoTracker implements VisionPipeline {
         if (bounds.area() > 32 && aspecterr < 0.3) {
           // Now we know it has non-trivial size and is closer to square/round:
 
-         // Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
+          
+        // Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
          if (bounds.area() > bestArea){
            bestArea = bounds.area();
            bestX = bounds.x + bounds.width/2.0;
            bestY = bounds.y + bounds.height/2.0;
            bestWidth = bounds.width;
            bestHeight = bounds.height;
+           
          }
         }
       }
@@ -222,6 +225,9 @@ public class CargoTracker implements VisionPipeline {
       cargoData.area = bestArea;
       cargoData.width = bestWidth;
       cargoData.height = bestHeight;
+      
+
+
 
     if (saveCargoImage.getBoolean(false) == true) {
     //Writes image files of what the cargo camera sees every 40 frames
@@ -238,5 +244,5 @@ public class CargoTracker implements VisionPipeline {
       }
     }
   }
-  
+
 
