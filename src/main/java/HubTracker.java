@@ -94,38 +94,43 @@ public class HubTracker implements VisionPipeline {
       Mat hierarchy = new Mat();
       Imgproc.findContours(maskImage, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-      double bestArea = 0.0;
-      double bestX = 0.0;
-      double bestY = 0.0;
+      double totalArea = 0.0;
+      double totalX = 0.0;
+      double totalY = 0.0;
+      double averageArea = 0.0;
+      double averageX = 0.0;
+      double averageY = 0.0;
+
+      for (int cidx=0; cidx < contours.size(); cidx++){
+        double area = Imgproc.boundingRect(contours.get(cidx)).area();
+        if (area > 30){
+        totalArea += area;
+        }
+      }
 
       // Walk the list of contours that we found and draw the ones that meet certain criteria:
       for (int cidx=0; cidx < contours.size(); cidx++) {
         // Grab the bounding rectangle for contour:
         Rect bounds = Imgproc.boundingRect(contours.get(cidx));
+        Rect bounds2 = new Rect(bounds.x/2, bounds.y/2, bounds.width/2, bounds.height/2);
         double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
-      //  Imgproc.rectangle(outputImage, bounds.br(), bounds.tl(), new Scalar(255,0,0));
+      //TODO:actually draw rectangle on outputImage  
+        Imgproc.rectangle(outputImage, bounds2.br(), bounds2.tl(), new Scalar(0,0,255));
 
-        // Only draw contours that have nearly square bounding boxes, and some minimal area... like round things.
-       // if (bounds.area() > 32 && aspecterr < 0.3) {
-          // Now we know it has non-trivial size and is closer to square/round:
-
-       //   Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
-         if (bounds.area() > bestArea){
-           bestArea = bounds.area();
-           bestX = bounds.x + bounds.width/2;
-           bestY = bounds.y + bounds.height/2;
-         }
+        if (bounds.area() > 30) {
+          totalX += bounds.x * bounds.area();
+          totalY += bounds.y * bounds.area();
+          Imgproc.rectangle(outputImage, bounds2.br(), bounds2.tl(), new Scalar(0,0,255));
         }
-        // }
-      //sends our best answer if found
-      if (bestArea > 0.0){
-          hubX.setDouble(bestX);
-          hubY.setDouble(bestY);
-          hubArea.setDouble(bestArea);
       }
-      else {
-        hubArea.setDouble(0.0);
 
+      if (contours.size() > 0 && totalArea > 0) {
+        averageX = totalX/totalArea;
+        averageY = totalY/totalArea;
+        averageArea = totalArea/contours.size();
+
+        Imgproc.line(outputImage, new Point(averageX/2, 0), new Point(averageX/2, outputImage.rows()-1), new Scalar(0, 255, 0));
+        Imgproc.line(outputImage, new Point(0, averageY/2), new Point(outputImage.cols()-1, averageY/2), new Scalar(0, 255, 0));
       }
 
       // Line for 1 meter
@@ -138,9 +143,6 @@ public class HubTracker implements VisionPipeline {
       Imgproc.line(outputImage, new Point(0, 372/2), new Point(outputImage.cols()-1, 372/2), new Scalar(0, 0, 255));
       // Line for 5 meters
       Imgproc.line(outputImage, new Point(0, 423/2), new Point(outputImage.cols()-1, 423/2), new Scalar(0, 0, 255));
-
-      Imgproc.line(outputImage, new Point(bestX/2, 0), new Point(bestX/2, outputImage.rows()-1), new Scalar(0, 255, 0));
-      Imgproc.line(outputImage, new Point(0, bestY/2), new Point(outputImage.cols()-1, bestY/2), new Scalar(0, 255, 0));
 
      // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
       //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
