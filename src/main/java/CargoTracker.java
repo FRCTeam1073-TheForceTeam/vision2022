@@ -177,8 +177,8 @@ public class CargoTracker implements VisionPipeline {
       outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
       /*
-      red cargo: H max(30), H min(0), S max(255), S min(90), V max(252), V min(60)
-      blue cargo: H max(165), H min(130), S max(255), S min(90), V max(252), V min(60)
+      red cargo: H max(255), H min(250), S max(255), S min(160), V max(255), V min(90)
+      blue cargo: H max(170), H min(145), S max(200), S min(160), V max(255), V min(90)
       */
 
       // Erode the mask image to eliminate the little "noise" pixels
