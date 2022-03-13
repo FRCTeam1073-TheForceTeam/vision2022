@@ -41,8 +41,8 @@ public class HubTracker implements VisionPipeline {
     private Mat outputImage;
     private Mat erosionKernel;
 
-    //private SimpleBlobDetectorParams blobParam
-
+    private double minBlobSize = 30;
+    
       public HubTracker(NetworkTableInstance ntinst, CvSource output_){
         nti = ntinst;
         hubTable = nti.getTable("HUB");
@@ -103,7 +103,7 @@ public class HubTracker implements VisionPipeline {
 
       for (int cidx=0; cidx < contours.size(); cidx++){
         double area = Imgproc.boundingRect(contours.get(cidx)).area();
-        if (area > 30){
+        if (area > minBlobSize){
         totalArea += area;
         }
       }
@@ -114,10 +114,10 @@ public class HubTracker implements VisionPipeline {
         Rect bounds = Imgproc.boundingRect(contours.get(cidx));
         Rect bounds2 = new Rect(bounds.x/2, bounds.y/2, bounds.width/2, bounds.height/2);
         double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
-      //TODO:actually draw rectangle on outputImage  
+        // Actually draw rectangle on outputImage which is 1/2 size.
         Imgproc.rectangle(outputImage, bounds2.br(), bounds2.tl(), new Scalar(0,0,255));
 
-        if (bounds.area() > 30) {
+        if (bounds.area() > minBlobSize) {
           totalX += bounds.x * bounds.area();
           totalY += bounds.y * bounds.area();
           Imgproc.rectangle(outputImage, bounds2.br(), bounds2.tl(), new Scalar(0,0,255));
@@ -134,31 +134,28 @@ public class HubTracker implements VisionPipeline {
       }
 
       // Line for 1 meter
-      Imgproc.line(outputImage, new Point(0, 6/2), new Point(outputImage.cols()-1, 6/2), new Scalar(0, 0, 255));
+      Imgproc.line(outputImage, new Point(0, 6/2), new Point(outputImage.cols()-1, 6/2), new Scalar(0, 255, 255));
       // Line for 2 meters
-      Imgproc.line(outputImage, new Point(0, 191/2), new Point(outputImage.cols()-1, 191/2), new Scalar(0, 0, 255));
+      Imgproc.line(outputImage, new Point(0, 191/2), new Point(outputImage.cols()-1, 191/2), new Scalar(0, 255, 255));
       // Line for 3 meters
-      Imgproc.line(outputImage, new Point(0, 299/2), new Point(outputImage.cols()-1, 299/2), new Scalar(0, 0, 255));
+      Imgproc.line(outputImage, new Point(0, 299/2), new Point(outputImage.cols()-1, 299/2), new Scalar(0, 255, 255));
       // Line for 4 meters
-      Imgproc.line(outputImage, new Point(0, 372/2), new Point(outputImage.cols()-1, 372/2), new Scalar(0, 0, 255));
+      Imgproc.line(outputImage, new Point(0, 372/2), new Point(outputImage.cols()-1, 372/2), new Scalar(0, 255, 255));
       // Line for 5 meters
-      Imgproc.line(outputImage, new Point(0, 423/2), new Point(outputImage.cols()-1, 423/2), new Scalar(0, 0, 255));
-
-     // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
-      //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
+      Imgproc.line(outputImage, new Point(0, 423/2), new Point(outputImage.cols()-1, 423/2), new Scalar(0, 255, 255));
 
       output.putFrame(outputImage);
      
     if (saveHubImage.getBoolean(false) == true) {
       //writes image files of what the hub tracker camera sees
-     if (frameCounter%40 == 0){
+     if (frameCounter % 40 == 0){
       //Names files based on the match number from FMSInfo and frame number
       String fileName = String.format( "/media/usb_key/hub_match_%d_image_%d.jpg", matchNuEntry.getNumber(0).intValue(), frameCounter);
       if (Imgcodecs.imwrite(fileName, inputImage) == false){
-      System.out.println("failed");
+      System.out.println("HubTracker failed to save image.");
       }
       else {
-        System.out.println("Success");
+        System.out.println("HubTracker Saved image.");
         }
       }
     }
