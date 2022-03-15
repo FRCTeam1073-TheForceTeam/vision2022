@@ -166,11 +166,7 @@ public class CargoTracker implements VisionPipeline {
         blueCargoArea.setDouble(0.0);
       }
 
-     // Imgproc.Sobel(inputImage, outputImage, -1, 1, 1);
-      //Imgproc.line(outputImage, new Point(0, outputImage.rows()/2), new Point(outputImage.cols()-1, outputImage.rows()/2), new Scalar(0, 0, 255));
-      
       output.putFrame(inputImage); 
-
     }
 
     void findCargo(Mat inputImage, Mat maskImage, CargoData cargoData){
@@ -201,21 +197,16 @@ public class CargoTracker implements VisionPipeline {
         // Grab the bounding rectangle for contour:
         Rect bounds = Imgproc.boundingRect(contours.get(cidx));
         double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
-      //  Imgproc.rectangle(outputImage, bounds.br(), bounds.tl(), new Scalar(255,0,0));
-
         // Only draw contours that have nearly square bounding boxes, and some minimal area... like round things.
         if (bounds.area() > 32 && aspecterr < 0.3) {
-          // Now we know it has non-trivial size and is closer to square/round:
-
-          
-        // Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
+         // Now we know it has non-trivial size and is closer to square/round:
+         // Imgproc.drawContours(outputImage, contours, cidx, new Scalar(0, 255, 0));
          if (bounds.area() > bestArea){
            bestArea = bounds.area();
            bestX = bounds.x + bounds.width/2.0;
            bestY = bounds.y + bounds.height/2.0;
            bestWidth = bounds.width;
            bestHeight = bounds.height;
-           
          }
         }
       }
@@ -226,8 +217,6 @@ public class CargoTracker implements VisionPipeline {
       cargoData.width = bestWidth;
       cargoData.height = bestHeight;
       
-
-
 
     if (saveCargoImage.getBoolean(false) == true) {
     //Writes image files of what the cargo camera sees every 40 frames

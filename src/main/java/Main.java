@@ -22,7 +22,6 @@ import edu.wpi.cscore.VideoSource;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.vision.VisionPipeline;
 import edu.wpi.first.vision.VisionThread;
 
 import org.opencv.core.Mat;
@@ -329,7 +328,7 @@ public final class Main {
     
      // start image processing on camera 2 if present
     if (cameras.size() > 0) {
-      CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo", 320, 240);
+      CvSource cargoStream = CameraServer.getInstance().putVideo("Cargo Vision", 160, 120);
       VisionThread cargoTrackerThread = new VisionThread(cameras.get(0),
               new CargoTracker(ntinst, cargoStream), pipeline -> {
         // do something with pipeline results
@@ -341,7 +340,7 @@ public final class Main {
 
 // start image processing on camera 0 if present
     if (cameras.size() > 1) {
-      CvSource hubStream = CameraServer.getInstance().putVideo("Hub", 320, 240);
+      CvSource hubStream = CameraServer.getInstance().putVideo("Hub Vision", 160, 120);
       VisionThread hubTrackerThread = new VisionThread(cameras.get(1),
               new HubTracker(ntinst, hubStream), pipeline -> {
         // do something with pipeline results
@@ -352,7 +351,7 @@ public final class Main {
 
          // start image processing on camera 1 if present
          if (cameras.size() > 2) {
-          CvSource indexerStream = CameraServer.getInstance().putVideo("Indexer", 320, 240);
+          CvSource indexerStream = CameraServer.getInstance().putVideo("Indexer Vision", 160, 120);
           VisionThread indexerTrackerThread = new VisionThread(cameras.get(2),
                   new IndexerTracker(ntinst, indexerStream), pipeline -> {
             // do something with pipeline results
