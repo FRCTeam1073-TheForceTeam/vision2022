@@ -126,16 +126,17 @@ public class HubTracker implements VisionPipeline {
         averageX = totalX/totalArea;
         averageY = totalY/totalArea;
         averageArea = totalArea/contours.size();
-        hubX.setNumber(averageX);
-        hubY.setNumber(averageY);
-        hubArea.setNumber(averageArea);
+        hubX.setDouble(averageX);
+        hubY.setDouble(averageY);
+        hubArea.setDouble(averageArea);
 
-        Imgproc.line(outputImage, new Point(averageX/4, 0), new Point(averageX/4, outputImage.rows()-1), new Scalar(0, 255, 0));
-        Imgproc.line(outputImage, new Point(0, averageY/4), new Point(outputImage.cols()-1, averageY/4), new Scalar(0, 255, 0));
-      } else {
-        hubX.setNumber(0);
-        hubY.setNumber(0);
-        hubArea.setNumber(0);
+        Imgproc.line(outputImage, new Point(averageX/2, 0), new Point(averageX/2, outputImage.rows()-1), new Scalar(0, 255, 0));
+        Imgproc.line(outputImage, new Point(0, averageY/2), new Point(outputImage.cols()-1, averageY/2), new Scalar(0, 255, 0));
+      }
+      else {
+        hubX.setDouble(0);
+        hubY.setDouble(0);
+        hubArea.setDouble(0);
       }
 
       // Line for 1 meter
