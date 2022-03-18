@@ -165,13 +165,14 @@ public class CargoTracker implements VisionPipeline {
       else {
         blueCargoArea.setDouble(0.0);
       }
-
-      output.putFrame(inputImage); 
+      Imgproc.resize(inputImage, outputImage, new Size(inputImage.cols()/2, inputImage.rows()/2));
+      output.putFrame(outputImage); 
     }
 
     void findCargo(Mat inputImage, Mat maskImage, CargoData cargoData){
-      outputImage.setTo(new Scalar(0,0,0));
+      //outputImage.setTo(new Scalar(0,0,0));
       Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
+
       /*
       red cargo: H max(255), H min(250), S max(255), S min(160), V max(255), V min(90)
       blue cargo: H max(170), H min(145), S max(200), S min(160), V max(255), V min(90)
