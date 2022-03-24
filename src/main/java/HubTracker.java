@@ -33,11 +33,13 @@ public class HubTracker implements VisionPipeline {
     private NetworkTableEntry matchNuEntry;
     private NetworkTableEntry enabledState;
     private NetworkTableEntry saveHubImage;
+    private NetworkTableEntry debugMode;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
     private Mat outputImage;
     private Mat erosionKernel;
+    private Mat imgDefault;
 
     private double minBlobSize = 30;
     
@@ -64,6 +66,8 @@ public class HubTracker implements VisionPipeline {
         hubVMax.setDouble(255);
         saveHubImage = hubTable.getEntry("Save Hub Images");
         saveHubImage.setBoolean(false);
+        debugMode = hubTable.getEntry("Debug Mode");
+        debugMode.setBoolean(false);
 
         matchNuEntry = nti.getTable("FMSInfo").getEntry("MatchNumber");
 
@@ -78,10 +82,19 @@ public class HubTracker implements VisionPipeline {
     public void process(Mat inputImage) {
       frameCounter += 1;
 
+      if (debugMode.getBoolean(false) == true) {
+        imgDefault = outputImage;
+      }
+      else{
+        imgDefault = inputImage;
+      }
+
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(110), hubSMin.getDouble(90), hubVMin.getDouble(80)), new Scalar(hubHMax.getDouble(140), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
+      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(110), hubSMin.getDouble(90), hubVMin.getDouble(80)), 
+        new Scalar(hubHMax.getDouble(140), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
+     // Pink Hue around 300
      // outputImage.setTo(new Scalar(0,0,0));
-      Imgproc.resize(inputImage, outputImage, new Size(inputImage.cols()/4, inputImage.rows()/4));
+      Imgproc.resize(inputImage, imgDefault, new Size(inputImage.cols()/4, inputImage.rows()/4));
      // Core.bitwise_and(inputImage, inputImage, outputImage, maskImage);
 
       // Erode the mask image to eliminate the little "noise" pixels
@@ -130,8 +143,8 @@ public class HubTracker implements VisionPipeline {
         hubY.setDouble(averageY);
         hubArea.setDouble(averageArea);
 
-        Imgproc.line(outputImage, new Point(averageX/4, 0), new Point(averageX/4, outputImage.rows()-1), new Scalar(0, 255, 0));
-        Imgproc.line(outputImage, new Point(0, averageY/4), new Point(outputImage.cols()-1, averageY/4), new Scalar(0, 255, 0));
+        Imgproc.line(imgDefault, new Point(averageX/4, 0), new Point(averageX/4, imgDefault.rows()-1), new Scalar(0, 255, 0));
+        Imgproc.line(imgDefault, new Point(0, averageY/4), new Point(imgDefault.cols()-1, averageY/4), new Scalar(0, 255, 0));
       }
       else {
         hubX.setDouble(0);
@@ -150,7 +163,7 @@ public class HubTracker implements VisionPipeline {
       // Line for 5 meters
       Imgproc.line(outputImage, new Point(0, 423/4), new Point(outputImage.cols()-1, 423/4), new Scalar(0, 255, 255));
 
-      output.putFrame(outputImage);
+      output.putFrame(imgDefault);
      
     if (saveHubImage.getBoolean(false) == true) {
       //writes image files of what the hub tracker camera sees
