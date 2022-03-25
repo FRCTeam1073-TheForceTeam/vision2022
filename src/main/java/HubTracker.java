@@ -42,6 +42,7 @@ public class HubTracker implements VisionPipeline {
     private Mat imgDefault;
 
     private double minBlobSize = 30;
+    private double maxBlobSize = 150;
     
       public HubTracker(NetworkTableInstance ntinst, CvSource output_){
         nti = ntinst;
@@ -114,7 +115,7 @@ public class HubTracker implements VisionPipeline {
 
       for (int cidx=0; cidx < contours.size(); cidx++){
         double area = Imgproc.boundingRect(contours.get(cidx)).area();
-        if (area > minBlobSize){
+        if (area > minBlobSize && area < maxBlobSize){
         totalArea += area;
         }
       }
@@ -128,7 +129,7 @@ public class HubTracker implements VisionPipeline {
         // Actually draw rectangle on outputImage which is 1/4 size.
         Imgproc.rectangle(outputImage, bounds2.br(), bounds2.tl(), new Scalar(0,0,255));
 
-        if (bounds.area() > minBlobSize) {
+        if (bounds.area() > minBlobSize && bounds.area() < maxBlobSize) {
           totalX += bounds.x * bounds.area();
           totalY += bounds.y * bounds.area();
           Imgproc.rectangle(outputImage, bounds2.br(), bounds2.tl(), new Scalar(0,0,255));
