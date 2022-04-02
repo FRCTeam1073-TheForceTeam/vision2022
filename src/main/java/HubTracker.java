@@ -41,8 +41,8 @@ public class HubTracker implements VisionPipeline {
     private Mat erosionKernel;
     private Mat imgDefault;
 
-    private double minBlobSize = 30;
-    private double maxBlobSize = 150;
+    private double minBlobSize = 20;
+    private double maxBlobSize = 250;
     
       public HubTracker(NetworkTableInstance ntinst, CvSource output_){
         nti = ntinst;
@@ -54,11 +54,11 @@ public class HubTracker implements VisionPipeline {
         hubArea = hubTable.getEntry("Hub Area");
         hubArea.setDouble(0);
         hubHMin = hubTable.getEntry("H Min");
-        hubHMin.setDouble(110);
+        hubHMin.setDouble(170);
         hubHMax = hubTable.getEntry("H Max");
-        hubHMax.setDouble(140);
+        hubHMax.setDouble(225);
         hubSMin = hubTable.getEntry("S Min");
-        hubSMin.setDouble(90);
+        hubSMin.setDouble(120);
         hubSMax = hubTable.getEntry("S Max");
         hubSMax.setDouble(255);
         hubVMin = hubTable.getEntry("V Min");
@@ -91,8 +91,8 @@ public class HubTracker implements VisionPipeline {
       }
 
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(110), hubSMin.getDouble(90), hubVMin.getDouble(80)), 
-        new Scalar(hubHMax.getDouble(140), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
+      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(170), hubSMin.getDouble(120), hubVMin.getDouble(80)), 
+        new Scalar(hubHMax.getDouble(225), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
      // Pink Hue around 300
      // outputImage.setTo(new Scalar(0,0,0));
       Imgproc.resize(inputImage, imgDefault, new Size(inputImage.cols()/4, inputImage.rows()/4));
@@ -125,7 +125,7 @@ public class HubTracker implements VisionPipeline {
         // Grab the bounding rectangle for contour:
         Rect bounds = Imgproc.boundingRect(contours.get(cidx));
         Rect bounds2 = new Rect(bounds.x/4, bounds.y/4, bounds.width/4, bounds.height/4);
-        double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
+        double aspecterr = Math.abs(1.2 - (double)bounds.width/(double)bounds.height);
         // Actually draw rectangle on outputImage which is 1/4 size.
         Imgproc.rectangle(outputImage, bounds2.br(), bounds2.tl(), new Scalar(0,0,255));
 
@@ -136,7 +136,7 @@ public class HubTracker implements VisionPipeline {
         }
       }
 
-      if (contours.size() > 0 && totalArea > 0) {
+      if (contours.size() > 0 && totalArea > minBlobSize) {
         averageX = totalX/totalArea;
         averageY = totalY/totalArea;
         averageArea = totalArea/contours.size();
@@ -148,21 +148,22 @@ public class HubTracker implements VisionPipeline {
         Imgproc.line(imgDefault, new Point(0, averageY/4), new Point(imgDefault.cols()-1, averageY/4), new Scalar(0, 255, 0));
       }
       else {
+        // We don't see anything that is reliable enough to transmit.
         hubX.setDouble(0);
         hubY.setDouble(0);
         hubArea.setDouble(0);
       }
 
       // Line for 1 meter
-      Imgproc.line(outputImage, new Point(0, 6/4), new Point(outputImage.cols()-1, 6/2), new Scalar(0, 255, 255));
+      Imgproc.line(outputImage, new Point(0, 18/4), new Point(outputImage.cols()-1, 18/4), new Scalar(0, 255, 255));
       // Line for 2 meters
-      Imgproc.line(outputImage, new Point(0, 191/4), new Point(outputImage.cols()-1, 191/4), new Scalar(0, 255, 255));
+      Imgproc.line(outputImage, new Point(0, 188/4), new Point(outputImage.cols()-1, 188/4), new Scalar(0, 255, 255));
       // Line for 3 meters
-      Imgproc.line(outputImage, new Point(0, 299/4), new Point(outputImage.cols()-1, 299/4), new Scalar(0, 255, 255));
+      Imgproc.line(outputImage, new Point(0, 295/4), new Point(outputImage.cols()-1, 295/4), new Scalar(0, 255, 255));
       // Line for 4 meters
-      Imgproc.line(outputImage, new Point(0, 372/4), new Point(outputImage.cols()-1, 372/4), new Scalar(0, 255, 255));
+      Imgproc.line(outputImage, new Point(0, 360/4), new Point(outputImage.cols()-1, 360/4), new Scalar(0, 255, 255));
       // Line for 5 meters
-      Imgproc.line(outputImage, new Point(0, 423/4), new Point(outputImage.cols()-1, 423/4), new Scalar(0, 255, 255));
+      Imgproc.line(outputImage, new Point(0, 412/4), new Point(outputImage.cols()-1, 412/4), new Scalar(0, 255, 255));
 
       output.putFrame(imgDefault);
      
