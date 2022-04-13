@@ -12,6 +12,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.dnn.Net;
 import org.opencv.core.MatOfPoint;
 import org.opencv.imgproc.*;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -34,6 +35,7 @@ public class HubTracker implements VisionPipeline {
     private NetworkTableEntry enabledState;
     private NetworkTableEntry saveHubImage;
     private NetworkTableEntry debugMode;
+    private NetworkTableEntry visionTime;
     private CvSource output;
     private Mat hsvImage;
     private Mat maskImage;
@@ -54,9 +56,9 @@ public class HubTracker implements VisionPipeline {
         hubArea = hubTable.getEntry("Hub Area");
         hubArea.setDouble(0);
         hubHMin = hubTable.getEntry("H Min");
-        hubHMin.setDouble(200);
+        hubHMin.setDouble(180);
         hubHMax = hubTable.getEntry("H Max");
-        hubHMax.setDouble(225);
+        hubHMax.setDouble(230);
         hubSMin = hubTable.getEntry("S Min");
         hubSMin.setDouble(120);
         hubSMax = hubTable.getEntry("S Max");
@@ -69,6 +71,8 @@ public class HubTracker implements VisionPipeline {
         saveHubImage.setBoolean(false);
         debugMode = hubTable.getEntry("Debug Mode");
         debugMode.setBoolean(false);
+        visionTime = hubTable.getEntry("Vision Time");
+        visionTime.setNumber(frameCounter);
 
         matchNuEntry = nti.getTable("FMSInfo").getEntry("MatchNumber");
 
@@ -82,6 +86,7 @@ public class HubTracker implements VisionPipeline {
     @Override
     public void process(Mat inputImage) {
       frameCounter += 1;
+      visionTime.setNumber(frameCounter);
 
       if (debugMode.getBoolean(false) == true) {
         imgDefault = outputImage;
@@ -91,8 +96,8 @@ public class HubTracker implements VisionPipeline {
       }
 
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(200), hubSMin.getDouble(120), hubVMin.getDouble(80)), 
-        new Scalar(hubHMax.getDouble(225), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
+      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(180), hubSMin.getDouble(120), hubVMin.getDouble(80)), 
+        new Scalar(hubHMax.getDouble(230), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
      // Pink Hue around 300
      // outputImage.setTo(new Scalar(0,0,0));
       Imgproc.resize(inputImage, imgDefault, new Size(inputImage.cols()/4, inputImage.rows()/4));
