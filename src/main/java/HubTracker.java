@@ -56,11 +56,11 @@ public class HubTracker implements VisionPipeline {
         hubArea = hubTable.getEntry("Hub Area");
         hubArea.setDouble(0);
         hubHMin = hubTable.getEntry("H Min");
-        hubHMin.setDouble(180);
+        hubHMin.setDouble(170);
         hubHMax = hubTable.getEntry("H Max");
-        hubHMax.setDouble(230);
+        hubHMax.setDouble(240);
         hubSMin = hubTable.getEntry("S Min");
-        hubSMin.setDouble(120);
+        hubSMin.setDouble(110);
         hubSMax = hubTable.getEntry("S Max");
         hubSMax.setDouble(255);
         hubVMin = hubTable.getEntry("V Min");
@@ -96,8 +96,8 @@ public class HubTracker implements VisionPipeline {
       }
 
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(180), hubSMin.getDouble(120), hubVMin.getDouble(80)), 
-        new Scalar(hubHMax.getDouble(230), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
+      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(170), hubSMin.getDouble(110), hubVMin.getDouble(80)), 
+        new Scalar(hubHMax.getDouble(240), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
      // Pink Hue around 300
      // outputImage.setTo(new Scalar(0,0,0));
       Imgproc.resize(inputImage, imgDefault, new Size(inputImage.cols()/4, inputImage.rows()/4));
