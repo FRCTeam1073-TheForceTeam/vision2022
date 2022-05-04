@@ -43,8 +43,8 @@ public class HubTracker implements VisionPipeline {
     private Mat erosionKernel;
     private Mat imgDefault;
 
-    private double minBlobSize = 20;
-    private double maxBlobSize = 250;
+    private double minBlobSize = 30;
+    private double maxBlobSize = 500;
     
       public HubTracker(NetworkTableInstance ntinst, CvSource output_){
         nti = ntinst;
@@ -56,15 +56,15 @@ public class HubTracker implements VisionPipeline {
         hubArea = hubTable.getEntry("Hub Area");
         hubArea.setDouble(0);
         hubHMin = hubTable.getEntry("H Min");
-        hubHMin.setDouble(170);
+        hubHMin.setDouble(180);
         hubHMax = hubTable.getEntry("H Max");
-        hubHMax.setDouble(240);
+        hubHMax.setDouble(220);
         hubSMin = hubTable.getEntry("S Min");
         hubSMin.setDouble(110);
         hubSMax = hubTable.getEntry("S Max");
         hubSMax.setDouble(255);
         hubVMin = hubTable.getEntry("V Min");
-        hubVMin.setDouble(80);
+        hubVMin.setDouble(115);
         hubVMax = hubTable.getEntry("V Max");
         hubVMax.setDouble(255);
         saveHubImage = hubTable.getEntry("Save Hub Images");
@@ -96,8 +96,8 @@ public class HubTracker implements VisionPipeline {
       }
 
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(170), hubSMin.getDouble(110), hubVMin.getDouble(80)), 
-        new Scalar(hubHMax.getDouble(240), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
+      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(180), hubSMin.getDouble(110), hubVMin.getDouble(115)), 
+        new Scalar(hubHMax.getDouble(220), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
      // Pink Hue around 300
      // outputImage.setTo(new Scalar(0,0,0));
       Imgproc.resize(inputImage, imgDefault, new Size(inputImage.cols()/4, inputImage.rows()/4));
@@ -120,6 +120,8 @@ public class HubTracker implements VisionPipeline {
 
       for (int cidx=0; cidx < contours.size(); cidx++){
         double area = Imgproc.boundingRect(contours.get(cidx)).area();
+        Rect bounds = Imgproc.boundingRect(contours.get(cidx));
+        double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
         if (area > minBlobSize && area < maxBlobSize){
         totalArea += area;
         }
@@ -130,7 +132,7 @@ public class HubTracker implements VisionPipeline {
         // Grab the bounding rectangle for contour:
         Rect bounds = Imgproc.boundingRect(contours.get(cidx));
         Rect bounds2 = new Rect(bounds.x/4, bounds.y/4, bounds.width/4, bounds.height/4);
-        double aspecterr = Math.abs(1.2 - (double)bounds.width/(double)bounds.height);
+        double aspecterr = Math.abs(1.0 - (double)bounds.width/(double)bounds.height);
         // Actually draw rectangle on outputImage which is 1/4 size.
         Imgproc.rectangle(outputImage, bounds2.br(), bounds2.tl(), new Scalar(0,0,255));
 
