@@ -43,8 +43,8 @@ public class HubTracker implements VisionPipeline {
     private Mat erosionKernel;
     private Mat imgDefault;
 
-    private double minBlobSize = 30;
-    private double maxBlobSize = 500;
+    private double minBlobSize = 10;
+    private double maxBlobSize = 450;
     
       public HubTracker(NetworkTableInstance ntinst, CvSource output_){
         nti = ntinst;
@@ -58,13 +58,13 @@ public class HubTracker implements VisionPipeline {
         hubHMin = hubTable.getEntry("H Min");
         hubHMin.setDouble(180);
         hubHMax = hubTable.getEntry("H Max");
-        hubHMax.setDouble(220);
+        hubHMax.setDouble(240);
         hubSMin = hubTable.getEntry("S Min");
-        hubSMin.setDouble(110);
+        hubSMin.setDouble(100);
         hubSMax = hubTable.getEntry("S Max");
         hubSMax.setDouble(255);
         hubVMin = hubTable.getEntry("V Min");
-        hubVMin.setDouble(115);
+        hubVMin.setDouble(210);
         hubVMax = hubTable.getEntry("V Max");
         hubVMax.setDouble(255);
         saveHubImage = hubTable.getEntry("Save Hub Images");
@@ -96,8 +96,8 @@ public class HubTracker implements VisionPipeline {
       }
 
       Imgproc.cvtColor(inputImage, hsvImage, Imgproc.COLOR_BGR2HSV_FULL);
-      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(180), hubSMin.getDouble(110), hubVMin.getDouble(115)), 
-        new Scalar(hubHMax.getDouble(220), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
+      Core.inRange(hsvImage, new Scalar(hubHMin.getDouble(180), hubSMin.getDouble(100), hubVMin.getDouble(210)), 
+        new Scalar(hubHMax.getDouble(240), hubSMax.getDouble(255), hubVMax.getDouble(255)), maskImage);
      // Pink Hue around 300
      // outputImage.setTo(new Scalar(0,0,0));
       Imgproc.resize(inputImage, imgDefault, new Size(inputImage.cols()/4, inputImage.rows()/4));
